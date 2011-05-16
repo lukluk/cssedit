@@ -54,6 +54,8 @@ c.display = function(url){
 	// Get css and parse it
 	$.get(url, function(data){
 		var css = c.css = c.parse(data);
+		$('link[href="'+url+'"]').remove();
+		c.styleObj = $('<style />',{type: 'text/css'}).html(c.render()).appendTo('head');
 		
 		// Start generating css if there were no errors
 		$('#cssedit_stylesheet').html( $.tmpl('css', {decs: css}) );
@@ -168,6 +170,7 @@ c.display = function(url){
 			else{
 				var index = $(e.target).parent('.dec').index('.dec,.comment');
 				css[index].selector = $(e.target).text();
+				c.styleObj.html(c.render());
 			}
 		});
 		
@@ -219,6 +222,7 @@ c.display = function(url){
 					,prop = $(e.target).parent().index()
 					,type = $(e.target).attr('class');
 				css[dec].properties[prop][type] = $(e.target).text();
+				c.styleObj.html(c.render());
 			}
 		});
 		
@@ -270,7 +274,7 @@ c.display = function(url){
 				,prop = $(e.target).parent().index()
 				,disabled = !e.target.checked
 			css[dec].properties[prop].disabled = disabled;
-			
+			c.styleObj.html(c.render());
 		});
 
 	});
@@ -298,7 +302,7 @@ c.display = function(url){
 			,value: ''
 			,disabled: false
 		});
-		
+		c.styleObj.html(c.render());
 		c.update_template();
 		
 		$('<input />',{'type': 'checkbox','checked':'checked'}).appendTo(wrap);
@@ -349,7 +353,6 @@ c.display = function(url){
 		c.update_template();
 		target.next('.grabber').andSelf().remove();
 	});
-
 	return true;
 }
 
