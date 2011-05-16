@@ -24,6 +24,12 @@ c.init = function(){
 	$.get(url + 'templates/interface.html', function(data){
 		$.template('interface',data);
 		$.tmpl('interface',{files: c.files}).appendTo(c.container);
+		
+		// Events for dropdown menu to change stylesheets
+		$('#cssedit_file').change(function(e){
+			var url = c.files[ $(e.target).val() ];
+			c.display(url);
+		});
 
 		$.get(url + 'templates/css.html', function(data){
 			$.template('css', data);
@@ -362,7 +368,6 @@ var ss = c.StyleSheet = function(url){
 		//,dataType: 'text/css'
 		,url: url
 		,success: function(data){
-			console.log('success',data);
 			css = data;
 		}
 	});
