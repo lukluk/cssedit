@@ -5,7 +5,8 @@ var url = 'http://localhost/cssedit/';
 c.indexes = {};
 c.container = $('<div />', {id: 'cssedit'}); // Container we are rendering to
 c.files; // All known CSS files
-c.css = {};
+c.stylesheets = {};
+c.ss = false; // Quick access to current stylesheet
 
 c.init = function(){
 	// Find CSS files that we will be working with.
@@ -64,8 +65,8 @@ c.init = function(){
 						$(e.target).parent().parent().remove();
 						var prop = e.data.property.index()
 							,dec = e.data.property.closest('.dec').index('.dec,.comment');
-						c.css[dec].properties[prop].deleted = true;
-						c.update_template();
+						c.ss.styles[dec].properties[prop].deleted = true;
+						c.ss.update_template();
 						e.data.property.remove();
 					});
 					
@@ -143,15 +144,15 @@ c.init = function(){
 		// Else update object
 		else{
 			var index = $(e.target).parent('.dec').index('.dec,.comment');
-			c.css[index].selector = $(e.target).text();
-			c.styleObj.html(c.render());
+			c.ss.styles[index].selector = $(e.target).text();
+			c.ss.update_element();
 		}
 	});
 	
 	// Changing comment
 	$('#cssedit_stylesheet .comment').live('keyup',function(e){
 		var index = $(e.target).index('.dec,.comment');
-		c.css[index].text = $(e.target).html().replace(new RegExp('<br>', 'gi'), "\n");
+		c.ss.styles[index].text = $(e.target).html().replace(new RegExp('<br>', 'gi'), "\n");
 	});
 	
 	// Value/name navigation
@@ -195,8 +196,8 @@ c.init = function(){
 			var dec = $(e.target).closest('.dec').index('.dec,.comment')
 				,prop = $(e.target).parent().index()
 				,type = $(e.target).attr('class');
-			c.css[dec].properties[prop][type] = $(e.target).text();
-			c.styleObj.html(c.render());
+			c.ss.styles[dec].properties[prop][type] = $(e.target).text();
+			c.ss.update_element();
 		}
 	});
 	
@@ -247,8 +248,8 @@ c.init = function(){
 		var dec = $(e.target).closest('.dec').index('.dec,.comment')
 			,prop = $(e.target).parent().index()
 			,disabled = !e.target.checked
-		c.css[dec].properties[prop].disabled = disabled;
-		c.styleObj.html(c.render());
+		c.ss.styles[dec].properties[prop].disabled = disabled;
+		c.ss.update_element();
 	});
 	// Press insert to insert property at current location
 	$('#cssedit_stylesheet .property').live('keyup',function(e){
@@ -268,13 +269,13 @@ c.init = function(){
 			var wrap = $('<div />',{'class':'property'}).insertAfter(target.parent());
 			
 		}
-		c.css[dec].properties.splice(prop,0,{
+		c.ss.styles[dec].properties.splice(prop,0,{
 			name: ''
 			,value: ''
 			,disabled: false
 		});
-		c.styleObj.html(c.render());
-		c.update_template();
+		c.ss.update_template();
+		c.ss.update_element();
 		
 		$('<input />',{'type': 'checkbox','checked':'checked'}).appendTo(wrap);
 		$('<div />',{'class': 'name','contenteditable':'true'}).appendTo(wrap).focus();
@@ -285,11 +286,11 @@ c.init = function(){
 	$('#cssedit_stylesheet .grabber').live('add_comment',function(e){
 		var target = $(e.target)
 			,index = target.prev().index('.dec,.comment')+1;
-		c.css.splice(index,0,{
+		c.ss.styles.splice(index,0,{
 			type: 'comment'
 			,text: ''
 		});
-		c.update_template();
+		c.ss.update_template();
 		
 		$('<div />',{'class':'grabber'}).insertAfter(target);
 		$('<div />',{'class':'comment','contenteditable':'true'}).insertAfter(target).focus();
@@ -300,12 +301,12 @@ c.init = function(){
 		var target = $(e.target)
 			,index = target.prev().index('.dec,.comment')+1;
 		
-		c.css.splice(index,0,{
+		c.ss.styles.splice(index,0,{
 			type: 'dec'
 			,selector: ''
 			,properties: []
 		});
-		c.update_template();
+		c.ss.update_template();
 		
 		$('<div />',{'class':'grabber'}).insertAfter(target);
 		var dec = $('<div />',{'class':'dec','contenteditable':'false'}).insertAfter(target);
@@ -320,8 +321,8 @@ c.init = function(){
 	$('#cssedit_stylesheet .comment').live('delete_comment',function(e){
 		var target = $(e.target);
 		var index = target.index('.dec,.comment');
-		c.css[index].deleted = true;
-		c.update_template();
+		c.ss.styles[index].deleted = true;
+		c.ss.update_template();
 		target.next('.grabber').andSelf().remove();
 	});
 }
@@ -338,19 +339,62 @@ c.getFiles = function(){
 }
 
 c.display = function(url){
-	// Get css and parse it
-	$.get(url, function(data){
-		c.css = c.parse(data);
-		$('link[href="'+url+'"]').remove();
-		c.styleObj = $('<style />',{type: 'text/css'}).html(c.render()).appendTo('head');
-		
-		// Generate css display if there were no errors
-		$('#cssedit_stylesheet').html( $.tmpl('css', {decs: c.css}) );
-	});
+	if (typeof c.stylesheets[url] === 'undefined'){
+		c.stylesheets[url] = new ss(url);
+	}
+	
+	// Generate css display if there were no errors
+	$('#cssedit_stylesheet').html( $.tmpl('css', {decs: c.stylesheets[url].styles}) );
+
+	c.ss = c.stylesheets[url];
 }
 
-c.parse = function(css){
+
+
+
+var ss = c.StyleSheet = function(url){
+	
+	// url of stylesheet
+	this.url = url;
+	var css = '';
+	$.ajax({
+		async: false
+		//,dataType: 'text/css'
+		,url: url
+		,success: function(data){
+			console.log('success',data);
+			css = data;
+		}
+	});
+	
+	this.css = css;
+	
+	// Where we will be updating the css
+	this.styleObject = $('<style />',{type: 'text/css'}).appendTo('head');
+	
+	this.indexes = {}; // Indexes for template
+	this.indexes.selector = 0;
+	this.indexes.prop     = 0;
+	this.indexes.value    = 0;
+	
+	this.template  = ''; // Template for rendering
+	this.styles = []; // Parsed styles from this.css
+	
+	// Setup everything
+	this.parse();
+	this.styleObject.html( this.render() );
+	
+	// Remove link to original stylesheet
+	$('link[href="'+url+'"]').remove();
+	
+	return this;
+}
+
+ss.fn = ss.prototype;
+
+ss.fn.parse = function(){
 	var obj = []
+		,css = this.css
 		,in_dec       = false
 		,in_comment   = false
 		,in_property  = false
@@ -484,14 +528,15 @@ c.parse = function(css){
 	this.indexes.selector = selector_index;
 	this.indexes.prop     = prop_index;
 	this.indexes.value    = value_index;
-	this.render_template  = place_holder += current;
+	this.template  = place_holder += current;
+	this.styles = obj;
 	
-	return obj;
+	return this;
 }
 
-c.update_template = function(){
-	var template = this.render_template;
-	var obj = this.css;
+ss.fn.update_template = function(){
+	var template = this.template;
+	var obj = this.styles;
 	
 	// Get last indexes
 	selector_index = this.indexes.selector;
@@ -652,15 +697,16 @@ c.update_template = function(){
 	this.indexes.selector = selector_index;
 	this.indexes.prop     = prop_index;
 	this.indexes.value    = value_index;
-	this.render_template  = template;
+	this.template         = template;
 
 	return true;
 }
 
-c.render = function(){
+ss.fn.render = function(){
 	//this.update_template();
-	var obj = this.css;
-	var template = this.render_template;
+	var obj = this.styles;
+	var template = this.template;
+	
 	// Start with replacing known values
 	// Keep track of new values too, we will be dealing with those next
 	var stylesheet = template;
@@ -701,11 +747,9 @@ c.render = function(){
 	return stylesheet;
 }
 
-
-c.save = function(css){
-	
+ss.fn.update_element = function(){
+	this.styleObject.html( this.render() );
 }
-
 if (typeof window.cssedit == 'undefined'){
 	window.cssedit = c;
 }
