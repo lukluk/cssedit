@@ -1,0 +1,14 @@
+<div id="cssedit_header">
+	<form action="#">
+		<fieldset>
+			<select name="file">
+				{{each(i,file) files}}
+				<option value="${i}">${file}</option>
+				{{/each}}
+			</select>
+		</fieldset>
+	</form>
+</div>
+<div id="cssedit_stylesheet" contenteditable="false">
+	
+</div>

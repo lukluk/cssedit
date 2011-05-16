@@ -1,0 +1,18 @@
+{{each(i,dec) decs}}
+<div class="grabber"></div>
+{{if dec.type == 'dec'}}
+<div class="dec" contenteditable="false">
+	<div class="selector" contenteditable="true">${dec.selector}</div>
+	<div class="properties">
+		{{each(i,property) dec.properties}}
+		<div class="property">
+			<input type="checkbox" {{if property.disabled === false}} checked="checked" {{/if}} /><span class="name" contenteditable="true">${property.name}</span><span class="value" contenteditable="true">${property.value}</span>
+		</div>
+		{{/each}}
+	</div>
+</div>
+{{else dec.type == 'comment'}}
+<div class="comment" contenteditable="true">${dec.text}</div>
+{{/if}}
+{{/each}}
+<div class="grabber"></div>
