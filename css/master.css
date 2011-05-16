@@ -1,0 +1,82 @@
+#cssedit{
+    position:absolute;
+    height:400px;
+    bottom: 0;
+    left:0;
+    background:#FFF;
+    padding:10px;
+    color:#000;
+	font-family:monospace;
+	overflow-y:scroll;
+	overflow-x:hidden;
+}
+.dec .properties{
+	margin:5px 0 5px 10px;
+}
+.dec .selector:after{
+    content:" {";
+    color:#424242;
+}
+.dec .property input{
+	display:inline-block;
+	margin-right:10px;
+	vertical-align:bottom;
+}
+.dec .property .name{
+    color:#638E4F;
+}
+.dec .property:focus{
+    color:#449122;
+}
+.dec .property .name:after{
+    content:":";
+    color:#424242;
+}
+.dec .property .value{
+    color:#5BACEF;
+	display:inline-block;
+	padding-left:4px;
+}
+.dec .property .value:focus{
+    color:#158BF2;
+}
+
+.dec .property{
+    margin-left:10px;
+}
+
+.dec:after{
+    content: "}";
+    color:#424242;
+}
+
+.dec .value:after{
+    content: ";";
+    color:#424242;
+}
+
+.dec .selector, .dec .property, .dec .value{
+    min-width:20px;
+}
+
+#cssedit [contenteditable]{
+	outline: 0 solid transparent;
+}
+
+.comment{
+	white-space:pre;
+	color:#F00;
+	font-weight:bold;
+}
+.comment:before{
+	content: "/*";
+}
+
+.comment:after{
+	content: "*/";
+}
+
+#cssedit .grabber{
+	height:16px;
+	width:100%;
+}
