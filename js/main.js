@@ -6,6 +6,7 @@ c.indexes = {};
 c.container = $('<div />', {id: 'cssedit'}); // Container we are rendering to
 c.files; // All known CSS files
 c.css = {};
+
 c.init = function(){
 	// Find CSS files that we will be working with.
 	// CSS files will be limited by same-origin policy so make sure they are
@@ -325,9 +326,6 @@ c.init = function(){
 	});
 }
 
-/**
- *@returns {Array} An array of urls for style sheets
- */
 c.getFiles = function(){
 	var files = []
 		,our_css = ['css/master.css']
@@ -339,10 +337,6 @@ c.getFiles = function(){
 	return files;
 }
 
-/**
- *@param {String} url of css file to display
- *@returns {Boolen} true if successful else false
- */
 c.display = function(url){
 	// Get css and parse it
 	$.get(url, function(data){
@@ -355,10 +349,6 @@ c.display = function(url){
 	});
 }
 
-/**
- *@param {String} css raw CSS
- *@returns {Object} Parsed css file
- */
 c.parse = function(css){
 	var obj = []
 		,in_dec       = false
@@ -711,10 +701,7 @@ c.render = function(){
 	return stylesheet;
 }
 
-/**
- *@param {Object} css A parsed CSS Object
- *@returns boolen 
- */
+
 c.save = function(css){
 	
 }
