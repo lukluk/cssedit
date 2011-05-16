@@ -5,7 +5,7 @@ var url = 'http://localhost/cssedit/';
 c.indexes = {};
 c.container = $('<div />', {id: 'cssedit'}); // Container we are rendering to
 c.files; // All known CSS files
-
+c.css = {};
 c.init = function(){
 	// Find CSS files that we will be working with.
 	// CSS files will be limited by same-origin policy so make sure they are
@@ -30,255 +30,225 @@ c.init = function(){
 			c.display(c.files[0]);
 		});
 	});
-}
+	
+	// Setup events
 
-/**
- *@returns {Array} An array of urls for style sheets
- */
-c.getFiles = function(){
-	var files = []
-		,our_css = ['css/master.css']
-	$('link[href][type="text/css"]').each(function(i,e){
-		var href = $(this).attr('href');
-		if ($.inArray(href, our_css) === -1) files.push( href );
+	// Right clicking things
+	$('#cssedit_stylesheet').live('contextmenu mousedown mouseup', function(e){
+		if (e.which === 3){
+			e.preventDefault();
+			
+			// In firefox in no contenteditable element is focus it will select everything
+			var target = $(e.target);
+			if (target.attr('class') === 'selector') target.focus();
+			else if (target.attr('class') === 'dec') target.find('.selector').focus();
+			else if (target.attr('class') === 'property') target.find('.name').focus();
+			else if (target.attr('id') === 'cssedit_stylesheet') $('#cssedit_stylesheet .selector:eq(0)').focus();
+			
+			if (e.type == 'mouseup'){
+				
+				// Show menu to delete/insert property
+				if(target.is('.property,.name,.value')){
+					var menu = $('<div />',{'class':'cssedit_menu'})
+					.css({position: 'absolute', left: e.clientX-15, top: e.clientY-15})
+					.appendTo('body')
+					.mouseleave(function(e){
+						$(this).remove();
+					});
+					
+					$('<a />').text('Delete')
+					.appendTo(menu)
+					.button()
+					.bind('click',{property: target.closest('.property')}, function(e){
+						$(e.target).parent().parent().remove();
+						var prop = e.data.property.index()
+							,dec = e.data.property.closest('.dec').index('.dec,.comment');
+						c.css[dec].properties[prop].deleted = true;
+						c.update_template();
+						e.data.property.remove();
+					});
+					
+					$('<a />')
+					.text('Insert')
+					.appendTo(menu)
+					.button()
+					.bind('click',{target: target}, function(e){
+						e.data.target.trigger('add_property');
+					});
+				}
+				
+				// Show menu to insert dec/comment
+				else if (target.is('#cssedit_stylesheet .grabber')){
+					var menu = $('<div />',{'class':'cssedit_menu'})
+					.css({position: 'absolute', left: e.clientX-15, top: e.clientY-15})
+					.appendTo('body')
+					.mouseleave(function(e){
+						$(this).remove();
+					});
+					
+					$('<a />').text('Add comment').button()
+					.bind('click',{target: target}, function(e){
+						$(e.target).parent().parent().remove();
+						$(e.data.target).trigger('add_comment');
+					})
+					.appendTo(menu);
+
+					$('<a />').text('Add declaration').button()
+					.bind('click',{target: target}, function(e){
+						$(e.target).parent().parent().remove();
+						$(e.data.target).trigger('add_dec');
+					})
+					.appendTo(menu);
+				}
+				
+				// Show menu to remove comments
+				else if (target.is('.comment')){
+					var menu = $('<div />',{'class':'cssedit_menu'})
+					.css({position: 'absolute', left: e.clientX-15, top: e.clientY-15})
+					.appendTo('body')
+					.mouseleave(function(e){
+						$(this).remove();
+					});
+					
+					$('<a />').text('Delete comment').button()
+					.bind('click',{target: target}, function(e){
+						$(e.target).parent().parent().remove();
+						$(e.data.target).trigger('delete_comment');
+					})
+					.appendTo(menu);
+				}
+			}
+		}
 	});
 	
-	return files;
-}
-
-/**
- *@param {String} url of css file to display
- *@returns {Boolen} true if successful else false
- */
-c.display = function(url){
-	// Get css and parse it
-	$.get(url, function(data){
-		var css = c.css = c.parse(data);
-		$('link[href="'+url+'"]').remove();
-		c.styleObj = $('<style />',{type: 'text/css'}).html(c.render()).appendTo('head');
-		
-		// Start generating css if there were no errors
-		$('#cssedit_stylesheet').html( $.tmpl('css', {decs: css}) );
-		
-		// Right clicking things
-		$('#cssedit_stylesheet').live('contextmenu mousedown mouseup', function(e){
-			if (e.which === 3){
-				e.preventDefault();
-				
-				// In firefox in no contenteditable element is focus it will select everything
-				var target = $(e.target);
-				if (target.attr('class') === 'selector') target.focus();
-				else if (target.attr('class') === 'dec') target.find('.selector').focus();
-				else if (target.attr('class') === 'property') target.find('.name').focus();
-				else if (target.attr('id') === 'cssedit_stylesheet') $('#cssedit_stylesheet .selector:eq(0)').focus();
-				
-				if (e.type == 'mouseup'){
-					
-					// Show menu to delete/insert property
-					if(target.is('.property,.name,.value')){
-						var menu = $('<div />',{'class':'cssedit_menu'})
-						.css({position: 'absolute', left: e.clientX-15, top: e.clientY-15})
-						.appendTo('body')
-						.mouseleave(function(e){
-							$(this).remove();
-						});
-						
-						$('<a />').text('Delete')
-						.appendTo(menu)
-						.button()
-						.bind('click',{property: target.closest('.property')}, function(e){
-							$(e.target).parent().parent().remove();
-							var prop = e.data.property.index()
-								,dec = e.data.property.closest('.dec').index('.dec,.comment');
-							c.css[dec].properties[prop].deleted = true;
-							c.update_template();
-							e.data.property.remove();
-						});
-						
-						$('<a />')
-						.text('Insert')
-						.appendTo(menu)
-						.button()
-						.bind('click',{target: target}, function(e){
-							e.data.target.trigger('add_property');
-						});
-					}
-					
-					// Show menu to insert dec/comment
-					else if (target.is('#cssedit_stylesheet .grabber')){
-						var menu = $('<div />',{'class':'cssedit_menu'})
-						.css({position: 'absolute', left: e.clientX-15, top: e.clientY-15})
-						.appendTo('body')
-						.mouseleave(function(e){
-							$(this).remove();
-						});
-						
-						$('<a />').text('Add comment').button()
-						.bind('click',{target: target}, function(e){
-							$(e.target).parent().parent().remove();
-							$(e.data.target).trigger('add_comment');
-						})
-						.appendTo(menu);
-
-						$('<a />').text('Add declaration').button()
-						.bind('click',{target: target}, function(e){
-							$(e.target).parent().parent().remove();
-							$(e.data.target).trigger('add_dec');
-						})
-						.appendTo(menu);
-					}
-					
-					// Show menu to remove comments
-					else if (target.is('.comment')){
-						var menu = $('<div />',{'class':'cssedit_menu'})
-						.css({position: 'absolute', left: e.clientX-15, top: e.clientY-15})
-						.appendTo('body')
-						.mouseleave(function(e){
-							$(this).remove();
-						});
-						
-						$('<a />').text('Delete comment').button()
-						.bind('click',{target: target}, function(e){
-							$(e.target).parent().parent().remove();
-							$(e.data.target).trigger('delete_comment');
-						})
-						.appendTo(menu);
-					}
-				}
-			}
-		});
-		
-		// Prevent new lines
-		$('.selector, .value, .property','#cssedit_stylesheet .dec').live('keypress', function(e){
-			return e.which != 13;
-		});
-		
-		$('#cssedit_stylesheet .dec .selector').live('keyup', function(e){
-			// Pressing enter on a selector for a dec with no properties adds
-			// a property
-			if (e.which === 13){
-				var next = $(e.target).parent().find('.properties .property:eq(0)');
-				if (next.length > 0){
-					next.focus();
-				}
-				else{
-					$(e.target).parent().find('.properties').trigger('add_property');
-				}
-			}
-			
-			// Else update object
-			else{
-				var index = $(e.target).parent('.dec').index('.dec,.comment');
-				css[index].selector = $(e.target).text();
-				c.styleObj.html(c.render());
-			}
-		});
-		
-		// Changing comment
-		$('#cssedit_stylesheet .comment').live('keyup',function(e){
-			var index = $(e.target).index('.dec,.comment');
-			css[index].text = $(e.target).html().replace(new RegExp('<br>', 'gi'), "\n");
-		});
-		
-		// Value/name navigation
-		$('#cssedit_stylesheet .dec .name,#cssedit_stylesheet .dec .value').live('keyup',function(e){
-			if(e.which === 13){
-				var type = $(e.target).attr('class')
-					,next = (type == 'property' ? $(e.target).next().next() : $(e.target).next());
-					
-				// Add a new property/value set
-				if(next.length == 0){
-					$(e.target).trigger('add_property');
-				}
-				// Go to the next property
-				else{
-					next.focus();
-				}
-			}
-			// Pressed up arrow
-			else if (e.which === 38){
-				var target = $(e.target);
-				var prev_prop = target.closest('.property').prev().find('.'+target.attr('class'));
-				if (prev_prop.length > 0) prev_prop.focus();
-				else{
-					target.closest('.dec').find('.selector').focus();
-				}
-			}
-			// Pressed down arrow
-			else if (e.which === 40){
-				var target = $(e.target);
-				var next_prop = target.closest('.property').next().find('.'+target.attr('class'));
-				if (next_prop.length > 0) next_prop.focus();
-				else{
-					var next = target.closest('.dec').nextAll('.dec:eq(0),.comment:eq(0)').first();
-					if(next.attr('class') === 'dec'){
-						next.find('.selector').focus();
-					}
-					else next.focus();
-				}
+	// Prevent new lines
+	$('.selector, .value, .property','#cssedit_stylesheet .dec').live('keypress', function(e){
+		return e.which != 13;
+	});
+	
+	$('#cssedit_stylesheet .dec .selector').live('keyup', function(e){
+		// Pressing enter on a selector for a dec with no properties adds
+		// a property
+		if (e.which === 13){
+			var next = $(e.target).parent().find('.properties .property:eq(0)');
+			if (next.length > 0){
+				next.focus();
 			}
 			else{
-				var dec = $(e.target).closest('.dec').index('.dec,.comment')
-					,prop = $(e.target).parent().index()
-					,type = $(e.target).attr('class');
-				css[dec].properties[prop][type] = $(e.target).text();
-				c.styleObj.html(c.render());
+				$(e.target).parent().find('.properties').trigger('add_property');
 			}
-		});
+		}
 		
-		// Arrow navigation from selector
-		$('#cssedit_stylesheet .dec .selector, .comment').live('keydown',function(e){
+		// Else update object
+		else{
+			var index = $(e.target).parent('.dec').index('.dec,.comment');
+			c.css[index].selector = $(e.target).text();
+			c.styleObj.html(c.render());
+		}
+	});
+	
+	// Changing comment
+	$('#cssedit_stylesheet .comment').live('keyup',function(e){
+		var index = $(e.target).index('.dec,.comment');
+		c.css[index].text = $(e.target).html().replace(new RegExp('<br>', 'gi'), "\n");
+	});
+	
+	// Value/name navigation
+	$('#cssedit_stylesheet .dec .name,#cssedit_stylesheet .dec .value').live('keyup',function(e){
+		if(e.which === 13){
+			var type = $(e.target).attr('class')
+				,next = (type == 'property' ? $(e.target).next().next() : $(e.target).next());
+				
+			// Add a new property/value set
+			if(next.length == 0){
+				$(e.target).trigger('add_property');
+			}
+			// Go to the next property
+			else{
+				next.focus();
+			}
+		}
+		// Pressed up arrow
+		else if (e.which === 38){
 			var target = $(e.target);
-			// Pressed up arrow
-			if (e.which === 38 && target.closest('.dec,.comment').index('.dec,.comment') > 0){
-				var prev = target
-				.closest('.dec,.comment')
-				.prev().prev();
-				if (prev.is('.dec')){
-					prev.find('.property:last .value').focus();
-				}
-				else if (prev.is('.comment')){
-					prev.focus();
-				}
+			var prev_prop = target.closest('.property').prev().find('.'+target.attr('class'));
+			if (prev_prop.length > 0) prev_prop.focus();
+			else{
+				target.closest('.dec').find('.selector').focus();
 			}
-			// Pressed down arrow
-			else if (e.which === 40){
-				if (target.attr('class') === 'selector'){
-					var prop = target.parent().find('.property:first .name');
-					if (prop.length > 0) prop.focus();
-					else{
-						target.next().next().find('.selector').focus();
-					}
+		}
+		// Pressed down arrow
+		else if (e.which === 40){
+			var target = $(e.target);
+			var next_prop = target.closest('.property').next().find('.'+target.attr('class'));
+			if (next_prop.length > 0) next_prop.focus();
+			else{
+				var next = target.closest('.dec').nextAll('.dec:eq(0),.comment:eq(0)').first();
+				if(next.attr('class') === 'dec'){
+					next.find('.selector').focus();
 				}
-				else /* === 'comment' */ {
+				else next.focus();
+			}
+		}
+		else{
+			var dec = $(e.target).closest('.dec').index('.dec,.comment')
+				,prop = $(e.target).parent().index()
+				,type = $(e.target).attr('class');
+			c.css[dec].properties[prop][type] = $(e.target).text();
+			c.styleObj.html(c.render());
+		}
+	});
+	
+	// Arrow navigation from selector
+	$('#cssedit_stylesheet .dec .selector, .comment').live('keydown',function(e){
+		var target = $(e.target);
+		// Pressed up arrow
+		if (e.which === 38 && target.closest('.dec,.comment').index('.dec,.comment') > 0){
+			var prev = target
+			.closest('.dec,.comment')
+			.prev().prev();
+			if (prev.is('.dec')){
+				prev.find('.property:last .value').focus();
+			}
+			else if (prev.is('.comment')){
+				prev.focus();
+			}
+		}
+		// Pressed down arrow
+		else if (e.which === 40){
+			if (target.attr('class') === 'selector'){
+				var prop = target.parent().find('.property:first .name');
+				if (prop.length > 0) prop.focus();
+				else{
 					target.next().next().find('.selector').focus();
 				}
 			}
-		});
-		
-		// Auto remove empty properties
-		$('#cssedit_stylesheet .dec .property').live('focusout',function(e){
-			if($(e.target).closest('.property').text() === ''){
-				$(e.target).parent().remove();
+			else /* === 'comment' */ {
+				target.next().next().find('.selector').focus();
 			}
-		});
-		
-		// Auto remove empty comments
-		$('#cssedit_stylesheet .comment').live('keyup',function(e){
-			if ( $.trim($(e.target).text()) === '') $(e.target).trigger('delete_comment');
-		});
-		
-		// Enable/disable property
-		$('#cssedit_stylesheet .dec input[type="checkbox"]').live('change',function(e){
-			var dec = $(e.target).closest('.dec').index('.dec,.comment')
-				,prop = $(e.target).parent().index()
-				,disabled = !e.target.checked
-			css[dec].properties[prop].disabled = disabled;
-			c.styleObj.html(c.render());
-		});
-
+		}
 	});
 	
+	// Auto remove empty properties
+	$('#cssedit_stylesheet .dec .property').live('focusout',function(e){
+		if($(e.target).closest('.property').text() === ''){
+			$(e.target).parent().remove();
+		}
+	});
+	
+	// Auto remove empty comments
+	$('#cssedit_stylesheet .comment').live('keyup',function(e){
+		if ( $.trim($(e.target).text()) === '') $(e.target).trigger('delete_comment');
+	});
+	
+	// Enable/disable property
+	$('#cssedit_stylesheet .dec input[type="checkbox"]').live('change',function(e){
+		var dec = $(e.target).closest('.dec').index('.dec,.comment')
+			,prop = $(e.target).parent().index()
+			,disabled = !e.target.checked
+		c.css[dec].properties[prop].disabled = disabled;
+		c.styleObj.html(c.render());
+	});
 	// Press insert to insert property at current location
 	$('#cssedit_stylesheet .property').live('keyup',function(e){
 		if (e.which === 45) $(e.target).trigger('add_property');
@@ -353,7 +323,36 @@ c.display = function(url){
 		c.update_template();
 		target.next('.grabber').andSelf().remove();
 	});
-	return true;
+}
+
+/**
+ *@returns {Array} An array of urls for style sheets
+ */
+c.getFiles = function(){
+	var files = []
+		,our_css = ['css/master.css']
+	$('link[href][type="text/css"]').each(function(i,e){
+		var href = $(this).attr('href');
+		if ($.inArray(href, our_css) === -1) files.push( href );
+	});
+	
+	return files;
+}
+
+/**
+ *@param {String} url of css file to display
+ *@returns {Boolen} true if successful else false
+ */
+c.display = function(url){
+	// Get css and parse it
+	$.get(url, function(data){
+		c.css = c.parse(data);
+		$('link[href="'+url+'"]').remove();
+		c.styleObj = $('<style />',{type: 'text/css'}).html(c.render()).appendTo('head');
+		
+		// Generate css display if there were no errors
+		$('#cssedit_stylesheet').html( $.tmpl('css', {decs: c.css}) );
+	});
 }
 
 /**
