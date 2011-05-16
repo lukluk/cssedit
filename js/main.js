@@ -306,8 +306,8 @@ c.display = function(url){
 		c.update_template();
 		
 		$('<input />',{'type': 'checkbox','checked':'checked'}).appendTo(wrap);
-		$('<span />',{'class': 'name','contenteditable':'true'}).appendTo(wrap).focus();
-		$('<span />',{'class': 'value','contenteditable':'true'}).appendTo(wrap);
+		$('<div />',{'class': 'name','contenteditable':'true'}).appendTo(wrap).focus();
+		$('<div />',{'class': 'value','contenteditable':'true'}).appendTo(wrap);
 	});
 	
 	// Add comment after e.target

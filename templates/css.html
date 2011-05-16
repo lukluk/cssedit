@@ -6,7 +6,7 @@
 	<div class="properties">
 		{{each(i,property) dec.properties}}
 		<div class="property">
-			<input type="checkbox" {{if property.disabled === false}} checked="checked" {{/if}} /><span class="name" contenteditable="true">${property.name}</span><span class="value" contenteditable="true">${property.value}</span>
+			<input type="checkbox" {{if property.disabled === false}} checked="checked" {{/if}} /><div class="name" contenteditable="true">${property.name}</div><div class="value" contenteditable="true">${property.value}</div>
 		</div>
 		{{/each}}
 	</div>

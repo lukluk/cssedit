@@ -80,3 +80,7 @@
 	height:16px;
 	width:100%;
 }
+
+#cssedit .dec .name,#cssedit .dec .value{
+	display:inline;
+}
