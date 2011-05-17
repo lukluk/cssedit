@@ -185,64 +185,12 @@ c.init = function(){
 				next.focus();
 			}
 		}
-		// Pressed up arrow
-		else if (e.which === 38){
-			var target = $(e.target);
-			var prev_prop = target.closest('.property').prev().find('.'+target.attr('class'));
-			if (prev_prop.length > 0) prev_prop.focus();
-			else{
-				target.closest('.dec').find('.selector').focus();
-			}
-		}
-		// Pressed down arrow
-		else if (e.which === 40){
-			var target = $(e.target);
-			var next_prop = target.closest('.property').next().find('.'+target.attr('class'));
-			if (next_prop.length > 0) next_prop.focus();
-			else{
-				var next = target.closest('.dec').nextAll('.dec:eq(0),.comment:eq(0)').first();
-				if(next.attr('class') === 'dec'){
-					next.find('.selector').focus();
-				}
-				else next.focus();
-			}
-		}
 		else{
 			var dec = $(e.target).closest('.dec').index('.dec,.comment')
 				,prop = $(e.target).parent().index()
 				,type = $(e.target).attr('class');
 			c.ss.styles[dec].properties[prop][type] = $(e.target).text();
 			c.ss.update_element();
-		}
-	});
-	
-	// Arrow navigation from selector
-	$('.dec .selector, .comment').live('keydown',function(e){
-		var target = $(e.target);
-		// Pressed up arrow
-		if (e.which === 38 && target.closest('.dec,.comment').index('.dec,.comment') > 0){
-			var prev = target
-			.closest('.dec,.comment')
-			.prev().prev();
-			if (prev.is('.dec')){
-				prev.find('.property:last .value').focus();
-			}
-			else if (prev.is('.comment')){
-				prev.focus();
-			}
-		}
-		// Pressed down arrow
-		else if (e.which === 40){
-			if (target.attr('class') === 'selector'){
-				var prop = target.parent().find('.property:first .name');
-				if (prop.length > 0) prop.focus();
-				else{
-					target.next().next().find('.selector').focus();
-				}
-			}
-			else /* === 'comment' */ {
-				target.next().next().find('.selector').focus();
-			}
 		}
 	});
 	
@@ -339,6 +287,15 @@ c.init = function(){
 		c.ss.styles[index].deleted = true;
 		c.ss.update_template();
 		target.next('.grabber').andSelf().remove();
+	});
+	
+	// Skip over checkboxes when tabbing through things
+	$('#stylesheet input:checkbox').live('keyup',function(e){
+		console.log(e);
+		if (e.which === 9){
+			if (e.shiftKey === false) $(this).next().focus();
+			else $(this).parent().prev().find('.value').focus();
+		}
 	});
 }
 
