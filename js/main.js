@@ -62,7 +62,6 @@ c.init = function(){
 			else if (target.attr('id') === 'stylesheet') $('.selector:eq(0)').focus();
 			
 			if (e.type == 'mouseup'){
-			console.log(e);
 			
 				// Show menu to delete/insert property
 				if(target.is('.property,.name,.value')){
@@ -292,10 +291,41 @@ c.init = function(){
 	
 	// Skip over checkboxes when tabbing through things
 	$('#stylesheet input:checkbox').live('keyup',function(e){
-		console.log(e);
 		if (e.which === 9){
 			if (e.shiftKey === false) $(this).next().focus();
 			else $(this).parent().prev().find('.value').focus();
+		}
+	});
+	
+	// Increment numeric values using up/down arrow keys
+	$('.value').live('keydown',function(e){
+		var target = $(this);
+		
+		// Get what is at cursor location
+		var offset = window.getSelection().getRangeAt(0).startOffset
+			,regex = new RegExp('(.{0,'+offset+'})(\\s|^)(-{0,1}[\\d]+)([\\w]*)(\\s|$)')
+			,unit = target.text().match(regex);
+		
+		if(unit !== null && unit[3].length > 0){
+			var i = parseInt(unit[3]);
+			var number;
+			if (e.shiftKey === false) number = 1;
+			else number = 10;
+			
+			if (e.which === 38) i += number;
+			else if (e.which === 40) i -= number;
+			else return;
+		
+			target.text( target.text().replace(regex, '$1$2'+i+ (unit[4] || 'px') +'$5'));
+			var range = document.createRange();
+
+			range.setStart(this.firstChild,offset);
+			range.setEnd(this.firstChild,offset);
+			
+			var sel = window.getSelection();
+			e.preventDefault();
+			sel.removeAllRanges();
+			sel.addRange(range);
 		}
 	});
 }
