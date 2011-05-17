@@ -3,14 +3,39 @@
 <html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en" lang="en">
 <head>
     <title>CSSEdit demo page</title>
-	<script type="text/javascript" src="js/jquery-1.5.2.js"></script>
-	<script type="text/javascript" src="js/jquery-ui-1.8.11.custom.min.js"></script>
-	<script type="text/javascript" src="js/jquery.datalink.js"></script>
-	<script type="text/javascript" src="js/jquery.tmpl.js"></script>
-	<script type="text/javascript" src="js/main.js"></script>
-	<link type="text/css" rel="stylesheet" href="css/master.css" />
 	<link type="text/css" rel="stylesheet" href="css/demo.css" />
-	<link type="text/css" rel="stylesheet" href="css/theme/jquery-ui-1.8.11.custom.css" />
+	<script type="text/javascript">
+	// This will eventually be a bookmarklet
+	window.onload = function(){
+		var body = document.body;
+		var iframe = document.createElement('iframe');
+		iframe.setAttribute('src','about:blank');
+		iframe.onload = function(){
+			iframe.contentDocument.documentElement.innerHTML = '';
+			var head = iframe.contentDocument.head;
+			
+			var scripts = ['js/jquery-1.5.2.js','js/jquery-ui-1.8.11.custom.min.js','js/jquery.tmpl.js','js/main.js'];
+			var styles = ['css/master.css','css/theme/jquery-ui-1.8.11.custom.css'];
+			
+			for (i in scripts){
+				var script = iframe.contentDocument.createElement('script');
+				script.setAttribute('type','text/javascript');
+				script.setAttribute('src',scripts[i]);
+				head.appendChild(script);
+			}
+			
+			for (i in styles){
+				var style = iframe.contentDocument.createElement('link');
+				style.setAttribute('type','text/css');
+				style.setAttribute('rel','stylesheet');
+				style.setAttribute('href',styles[i]);
+				head.appendChild(style);
+			}
+		}
+		
+		body.appendChild(iframe);
+	}
+	</script>
 </head>
 <body>
     <h1>Page title</h1>

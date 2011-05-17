@@ -1,14 +1,24 @@
-#cssedit{
-    position:absolute;
-    height:400px;
-    bottom: 0;
-    left:0;
+body{
     background:#FFF;
-    padding:10px;
     color:#000;
+}
+#header{
+	position:fixed;
+	top:0;
+	left:0;
+    padding:10px;
+	background:#fff;
+	height:40px;
+	width:100%;
+	box-shadow:0 0 5px rgba(0, 0, 0, 0.2);
+}
+fieldset{
+	border:0;
+}
+#stylesheet{
 	font-family:monospace;
-	overflow-y:scroll;
-	overflow-x:hidden;
+	margin-top:40px;
+    padding:10px;
 }
 .dec .properties{
 	margin:5px 0 5px 10px;
@@ -59,7 +69,7 @@
     min-width:20px;
 }
 
-#cssedit [contenteditable]{
+[contenteditable]{
 	outline: 0 solid transparent;
 }
 
@@ -76,11 +86,11 @@
 	content: "*/";
 }
 
-#cssedit .grabber{
+.grabber{
 	height:16px;
 	width:100%;
 }
 
-#cssedit .dec .name,#cssedit .dec .value{
+.dec .name,.dec .value{
 	display:inline;
 }

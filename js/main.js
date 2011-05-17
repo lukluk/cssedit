@@ -3,7 +3,7 @@
 var c = {};
 var url = 'http://localhost/cssedit/';
 c.indexes = {};
-c.container = $('<div />', {id: 'cssedit'}); // Container we are rendering to
+c.container = $('body'); // Container we are rendering to
 c.files; // All known CSS files
 c.stylesheets = {};
 c.ss = false; // Quick access to current stylesheet
@@ -14,11 +14,19 @@ c.init = function(){
 	// on the same domain.
 	c.files = c.getFiles();
 	
-	// Setup list of CSS files to edit
-
-	// Add container to body
-	$('body').append(c.container);
-	c.container.width($(window).width()-20)
+	// Find our iframe and resize it
+	$(window.parent.document).find('iframe').each(function(i,e){
+		if (e.contentDocument === document){
+			$(e).css({
+				'position':'fixed'
+				,'bottom':0
+				,'left':0
+				,'width':'100%'
+				,'height':'400px'
+				,'border':0
+			});
+		}
+	});
 	
 	// Get templates
 	$.get(url + 'templates/interface.html', function(data){
@@ -42,7 +50,7 @@ c.init = function(){
 	// Setup events
 
 	// Right clicking things
-	$('#cssedit_stylesheet').live('contextmenu mousedown mouseup', function(e){
+	$('#stylesheet').live('contextmenu mousedown mouseup', function(e){
 		if (e.which === 3){
 			e.preventDefault();
 			
@@ -51,7 +59,7 @@ c.init = function(){
 			if (target.attr('class') === 'selector') target.focus();
 			else if (target.attr('class') === 'dec') target.find('.selector').focus();
 			else if (target.attr('class') === 'property') target.find('.name').focus();
-			else if (target.attr('id') === 'cssedit_stylesheet') $('#cssedit_stylesheet .selector:eq(0)').focus();
+			else if (target.attr('id') === 'stylesheet') $('.selector:eq(0)').focus();
 			
 			if (e.type == 'mouseup'){
 				
@@ -86,7 +94,7 @@ c.init = function(){
 				}
 				
 				// Show menu to insert dec/comment
-				else if (target.is('#cssedit_stylesheet .grabber')){
+				else if (target.is('.grabber')){
 					var menu = $('<div />',{'class':'cssedit_menu'})
 					.css({position: 'absolute', left: e.clientX-15, top: e.clientY-15})
 					.appendTo('body')
@@ -130,11 +138,11 @@ c.init = function(){
 	});
 	
 	// Prevent new lines
-	$('.selector, .value, .property','#cssedit_stylesheet .dec').live('keypress', function(e){
+	$('.selector, .value, .property','.dec').live('keypress', function(e){
 		return e.which != 13;
 	});
 	
-	$('#cssedit_stylesheet .dec .selector').live('keyup', function(e){
+	$('.dec .selector').live('keyup', function(e){
 		// Pressing enter on a selector for a dec with no properties adds
 		// a property
 		if (e.which === 13){
@@ -156,13 +164,13 @@ c.init = function(){
 	});
 	
 	// Changing comment
-	$('#cssedit_stylesheet .comment').live('keyup',function(e){
+	$('.comment').live('keyup',function(e){
 		var index = $(e.target).index('.dec,.comment');
 		c.ss.styles[index].text = $(e.target).html().replace(new RegExp('<br>', 'gi'), "\n");
 	});
 	
 	// Value/name navigation
-	$('#cssedit_stylesheet .dec .name,#cssedit_stylesheet .dec .value').live('keyup',function(e){
+	$('.dec .name,.dec .value').live('keyup',function(e){
 		if(e.which === 13){
 			var type = $(e.target).attr('class')
 				,next = (type == 'property' ? $(e.target).next().next() : $(e.target).next());
@@ -208,7 +216,7 @@ c.init = function(){
 	});
 	
 	// Arrow navigation from selector
-	$('#cssedit_stylesheet .dec .selector, .comment').live('keydown',function(e){
+	$('.dec .selector, .comment').live('keydown',function(e){
 		var target = $(e.target);
 		// Pressed up arrow
 		if (e.which === 38 && target.closest('.dec,.comment').index('.dec,.comment') > 0){
@@ -238,19 +246,19 @@ c.init = function(){
 	});
 	
 	// Auto remove empty properties
-	$('#cssedit_stylesheet .dec .property').live('focusout',function(e){
+	$('.dec .property').live('focusout',function(e){
 		if($(e.target).closest('.property').text() === ''){
 			$(e.target).parent().remove();
 		}
 	});
 	
 	// Auto remove empty comments
-	$('#cssedit_stylesheet .comment').live('keyup',function(e){
+	$('.comment').live('keyup',function(e){
 		if ( $.trim($(e.target).text()) === '') $(e.target).trigger('delete_comment');
 	});
 	
 	// Enable/disable property
-	$('#cssedit_stylesheet .dec input[type="checkbox"]').live('change',function(e){
+	$('.dec input[type="checkbox"]').live('change',function(e){
 		var dec = $(e.target).closest('.dec').index('.dec,.comment')
 			,prop = $(e.target).parent().index()
 			,disabled = !e.target.checked
@@ -258,12 +266,12 @@ c.init = function(){
 		c.ss.update_element();
 	});
 	// Press insert to insert property at current location
-	$('#cssedit_stylesheet .property').live('keyup',function(e){
+	$('.property').live('keyup',function(e){
 		if (e.which === 45) $(e.target).trigger('add_property');
 	});
 	
 	// Add property after e.target
-	$('#cssedit_stylesheet .properties').live('add_property',function(e){
+	$('.properties').live('add_property',function(e){
 		var dec = $(e.target).closest('.dec').index('.dec,.comment');
 		var target = $(e.target);
 		if (target.is('.properties')){
@@ -289,7 +297,7 @@ c.init = function(){
 	});
 	
 	// Add comment after e.target
-	$('#cssedit_stylesheet .grabber').live('add_comment',function(e){
+	$('.grabber').live('add_comment',function(e){
 		var target = $(e.target)
 			,index = target.prev().index('.dec,.comment')+1;
 		c.ss.styles.splice(index,0,{
@@ -303,7 +311,7 @@ c.init = function(){
 	});
 	
 	// Add dec after e.target
-	$('#cssedit_stylesheet .grabber').live('add_dec',function(e){
+	$('.grabber').live('add_dec',function(e){
 		var target = $(e.target)
 			,index = target.prev().index('.dec,.comment')+1;
 		
@@ -324,7 +332,7 @@ c.init = function(){
 	});
 	
 	// Delete comment
-	$('#cssedit_stylesheet .comment').live('delete_comment',function(e){
+	$('.comment').live('delete_comment',function(e){
 		var target = $(e.target);
 		var index = target.index('.dec,.comment');
 		c.ss.styles[index].deleted = true;
@@ -336,7 +344,7 @@ c.init = function(){
 c.getFiles = function(){
 	var files = []
 		,our_css = ['css/master.css']
-	$('link[href][type="text/css"]').each(function(i,e){
+	$('link[href][type="text/css"]',window.parent.document).each(function(i,e){
 		var href = $(this).attr('href');
 		if ($.inArray(href, our_css) === -1) files.push( href );
 	});
@@ -350,7 +358,7 @@ c.display = function(url){
 	}
 	
 	// Generate css display if there were no errors
-	$('#cssedit_stylesheet').html( $.tmpl('css', {decs: c.stylesheets[url].styles}) );
+	$('#stylesheet').html( $.tmpl('css', {decs: c.stylesheets[url].styles}) );
 
 	c.ss = c.stylesheets[url];
 }
@@ -375,7 +383,7 @@ var ss = c.StyleSheet = function(url){
 	this.css = css;
 	
 	// Where we will be updating the css
-	this.styleObject = $('<style />',{type: 'text/css'}).appendTo('head');
+	this.styleObject = $('<style />',{type: 'text/css'}).appendTo(window.parent.document.head);
 	
 	this.indexes = {}; // Indexes for template
 	this.indexes.selector = 0;
@@ -390,7 +398,7 @@ var ss = c.StyleSheet = function(url){
 	this.styleObject.html( this.render() );
 	
 	// Remove link to original stylesheet
-	$('link[href="'+url+'"]').remove();
+	$('link[href="'+url+'"]',window.parent.document).remove();
 	
 	return this;
 }
