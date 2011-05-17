@@ -82,6 +82,7 @@ c.init = function(){
 							,dec = e.data.property.closest('.dec').index('.dec,.comment');
 						c.ss.styles[dec].properties[prop].deleted = true;
 						c.ss.update_template();
+						c.ss.update_element();
 						e.data.property.remove();
 					});
 					
