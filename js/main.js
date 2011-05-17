@@ -62,11 +62,12 @@ c.init = function(){
 			else if (target.attr('id') === 'stylesheet') $('.selector:eq(0)').focus();
 			
 			if (e.type == 'mouseup'){
-				
+			console.log(e);
+			
 				// Show menu to delete/insert property
 				if(target.is('.property,.name,.value')){
 					var menu = $('<div />',{'class':'cssedit_menu'})
-					.css({position: 'absolute', left: e.clientX-15, top: e.clientY-15})
+					.css({position: 'fixed', left: e.clientX-15, top: e.clientY-15})
 					.appendTo('body')
 					.mouseleave(function(e){
 						$(this).remove();
@@ -96,7 +97,7 @@ c.init = function(){
 				// Show menu to insert dec/comment
 				else if (target.is('.grabber')){
 					var menu = $('<div />',{'class':'cssedit_menu'})
-					.css({position: 'absolute', left: e.clientX-15, top: e.clientY-15})
+					.css({position: 'fixed', left: e.clientX-15, top: e.clientY-15})
 					.appendTo('body')
 					.mouseleave(function(e){
 						$(this).remove();
@@ -120,7 +121,7 @@ c.init = function(){
 				// Show menu to remove comments
 				else if (target.is('.comment')){
 					var menu = $('<div />',{'class':'cssedit_menu'})
-					.css({position: 'absolute', left: e.clientX-15, top: e.clientY-15})
+					.css({position: 'fixed', left: e.clientX-15, top: e.clientY-15})
 					.appendTo('body')
 					.mouseleave(function(e){
 						$(this).remove();
