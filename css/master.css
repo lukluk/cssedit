@@ -1,6 +1,9 @@
 body{
     background:#FFF;
     color:#000;
+	font-family:Verdana, Arial, sans-serif;
+	font-size:12px;
+	color:#000;
 }
 #header{
 	position:fixed;
