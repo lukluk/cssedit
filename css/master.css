@@ -1,3 +1,7 @@
+*{
+	margin:0;
+	padding:0;
+}
 body{
     background:#FFF;
     color:#000;
@@ -11,7 +15,6 @@ body{
 	left:0;
     padding:10px;
 	background:#fff;
-	height:40px;
 	width:100%;
 	box-shadow:0 0 5px rgba(0, 0, 0, 0.2);
 }
@@ -96,4 +99,8 @@ fieldset{
 
 .dec .name,.dec .value{
 	display:inline;
+}
+
+.dec br{
+	display:none;
 }
