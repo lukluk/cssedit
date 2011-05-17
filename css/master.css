@@ -104,3 +104,15 @@ fieldset{
 .dec br{
 	display:none;
 }
+
+#toggle_expand{
+	position:fixed;
+	height:20px;
+	width:20px;
+	top:8px;
+	right:8px;
+}
+
+#toggle_expand .ui-button-icon-primary{
+	left:2px;
+}

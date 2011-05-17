@@ -7,31 +7,58 @@ c.container = $('body'); // Container we are rendering to
 c.files; // All known CSS files
 c.stylesheets = {};
 c.ss = false; // Quick access to current stylesheet
+c.document = false;
 
 c.init = function(){
+	// If we are in an iframe find it and resize it
+	if (window.parent !== window){
+		c.document = window.parent.document;
+		$(window.parent.document).find('iframe').each(function(i,e){
+			if (e.contentDocument === document){
+				$(e).css({
+					'position':'fixed'
+					,'bottom':0
+					,'left':0
+					,'width':'100%'
+					,'height':'400px'
+					,'border':0
+				});
+			}
+		});
+	}
+	// If we are in a popup
+	else if (window.opener !== null){
+		c.document = window.opener.document;
+	}
+
 	// Find CSS files that we will be working with.
 	// CSS files will be limited by same-origin policy so make sure they are
 	// on the same domain.
 	c.files = c.getFiles();
 	
-	// Find our iframe and resize it
-	$(window.parent.document).find('iframe').each(function(i,e){
-		if (e.contentDocument === document){
-			$(e).css({
-				'position':'fixed'
-				,'bottom':0
-				,'left':0
-				,'width':'100%'
-				,'height':'400px'
-				,'border':0
-			});
-		}
-	});
-	
 	// Get templates
 	$.get(url + 'templates/interface.html', function(data){
 		$.template('interface',data);
 		$.tmpl('interface',{files: c.files}).appendTo(c.container);
+		
+		$('#toggle_expand').button({icons:{primary: 'ui-icon-newwin'}}).click(function(){
+			console.log(window.parent !== window);
+			if (window.parent !== window){
+				var page = window.open('about:blank','CSSEdit','menubar=no,toolbar=no,location=no,personalbar=no,status=no,dependent=yes,scrollbars=yes');
+				page.onload = function(){
+					c.move(page);
+				}
+			}
+			else{
+				var iframe = c.document.createElement('iframe');
+				iframe.setAttribute('src','about:blank');
+				iframe.onload = function(){
+					c.move(iframe.contentWindow);
+				}
+				c.document.body.appendChild(iframe);
+				
+			}
+		});
 		
 		// Events for dropdown menu to change stylesheets
 		$('#cssedit_file').change(function(e){
@@ -333,7 +360,7 @@ c.init = function(){
 c.getFiles = function(){
 	var files = []
 		,our_css = ['css/master.css']
-	$('link[href][type="text/css"]',window.parent.document).each(function(i,e){
+	$('link[href][type="text/css"]',c.document).each(function(i,e){
 		var href = $(this).attr('href');
 		if ($.inArray(href, our_css) === -1) files.push( href );
 	});
@@ -352,8 +379,63 @@ c.display = function(url){
 	c.ss = c.stylesheets[url];
 }
 
+c.move = function(target){
+	var head = target.document.head;
+		
+	var scripts = ['js/jquery-1.5.2.js','js/jquery-ui-1.8.11.custom.min.js','js/jquery.tmpl.js','js/main.js'];
+	var styles = ['css/master.css','css/theme/jquery-ui-1.8.11.custom.css'];
+	
+	for (i in styles){
+		var style = target.document.createElement('link');
+		style.setAttribute('type','text/css');
+		style.setAttribute('rel','stylesheet');
+		style.setAttribute('href',styles[i]);
+		head.appendChild(style);
+	}
+	
+	var x = 0;
+	var addScript = function(){
+		if(typeof scripts[x] === 'undefined'){
+			// Copy over information
+			target.cssedit.stylesheets = c.stylesheets;
+			target.cssedit.ss = c.ss;
+			target.cssedit.document = c.document;
+			target.cssedit.files = c.files;
+			
+			// Display current css file
+			target.cssedit.display(c.ss.url);
+			
+			// Remove our current view
+			c.destruct();
+		}
+		
+		var script = target.document.createElement('script');
+		script.setAttribute('type','text/javascript');
+		script.setAttribute('src',scripts[x]);
+		x++;
+		script.onload = addScript;
+		head.appendChild(script);
+		
+		return true;
+	}
+	addScript();
+}
 
-
+c.destruct = function(){
+	// If we are in an iframe find it and remove it
+	if (window.parent !== window){
+		c.document = window.parent.document;
+		$(window.parent.document).find('iframe').each(function(i,e){
+			if (e.contentDocument === document){
+				$(e).remove();
+			}
+		});
+	}
+	// If we are in a popup close it
+	else{
+		window.close();
+	}
+}
 
 var ss = c.StyleSheet = function(url){
 	
@@ -362,8 +444,8 @@ var ss = c.StyleSheet = function(url){
 	var css = '';
 	$.ajax({
 		async: false
-		//,dataType: 'text/css'
 		,url: url
+		,cache: false
 		,success: function(data){
 			css = data;
 		}
@@ -372,7 +454,7 @@ var ss = c.StyleSheet = function(url){
 	this.css = css;
 	
 	// Where we will be updating the css
-	this.styleObject = $('<style />',{type: 'text/css'}).appendTo(window.parent.document.head);
+	this.styleObject = $('<style />',{type: 'text/css'}).appendTo(c.document.head);
 	
 	this.indexes = {}; // Indexes for template
 	this.indexes.selector = 0;
@@ -387,7 +469,7 @@ var ss = c.StyleSheet = function(url){
 	this.styleObject.html( this.render() );
 	
 	// Remove link to original stylesheet
-	$('link[href="'+url+'"]',window.parent.document).remove();
+	$('link[href="'+url+'"]',c.document).remove();
 	
 	return this;
 }
