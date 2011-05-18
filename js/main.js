@@ -42,12 +42,14 @@ c.init = function(){
 		$.tmpl('interface',{files: c.files}).appendTo(c.container);
 		
 		$('#toggle_expand').button({icons:{primary: 'ui-icon-newwin'}}).click(function(){
-			console.log(window.parent !== window);
 			if (window.parent !== window){
 				var page = window.open('about:blank','CSSEdit','menubar=no,toolbar=no,location=no,personalbar=no,status=no,dependent=yes,scrollbars=yes');
+				var onloaded = false;
 				page.onload = function(){
 					c.move(page);
 				}
+				
+				if (!onloaded && page.document.readyState === 'complete') page.onload();
 			}
 			else{
 				var iframe = c.document.createElement('iframe');
@@ -389,36 +391,51 @@ c.move = function(target){
 		var style = target.document.createElement('link');
 		style.setAttribute('type','text/css');
 		style.setAttribute('rel','stylesheet');
-		style.setAttribute('href',styles[i]);
+		style.setAttribute('href',url+styles[i]);
 		head.appendChild(style);
 	}
 	
-	var x = 0;
-	var addScript = function(){
-		if(typeof scripts[x] === 'undefined'){
-			// Copy over information
-			target.cssedit.stylesheets = c.stylesheets;
-			target.cssedit.ss = c.ss;
-			target.cssedit.document = c.document;
-			target.cssedit.files = c.files;
-			
-			// Display current css file
-			target.cssedit.display(c.ss.url);
-			
-			// Remove our current view
-			c.destruct();
-		}
+	// Load jQuery into new document
+	var script = target.document.createElement('script');
+	script.setAttribute('type','text/javascript');
+	script.setAttribute('src',url +'js/jquery-1.5.2.js');
+	
+	// Keep track of whether onload has been called or not
+	var onloaded = false;
+	script.onload = function(){
+		onloaded = true;
 		
-		var script = target.document.createElement('script');
-		script.setAttribute('type','text/javascript');
-		script.setAttribute('src',scripts[x]);
-		x++;
-		script.onload = addScript;
-		head.appendChild(script);
-		
-		return true;
+		// Start loading in scripts using jQuery
+		target.jQuery.getScript(url +'js/jquery-ui-1.8.11.custom.min.js', function(){
+			target.jQuery.getScript(url +'js/jquery.tmpl.js', function(){
+				target.jQuery.getScript(url +'js/main.js', function(){
+					target.cssedit.stylesheets = c.stylesheets;
+					target.cssedit.ss = c.ss;
+					target.cssedit.document = c.document;
+					target.cssedit.files = c.files;
+					
+					// Display current css file
+					target.cssedit.display(c.ss.url);
+					
+					// Remove our current view
+					c.destruct();
+				});
+			});
+		});
 	}
-	addScript();
+	head.insertBefore(script, head.firstChild);
+	
+	// Chrome doesn't seem to like script.onload so check for existance of jQuery
+	var inter = setInterval(function(){
+		if (onloaded === false){
+			if (typeof target.jQuery !== 'undefined'){
+				onloaded = true;
+				script.onload();
+				clearInterval(inter);
+			}
+		}
+		else clearInterval(inter);
+	},1);
 }
 
 c.destruct = function(){
