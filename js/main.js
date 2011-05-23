@@ -669,13 +669,13 @@ ss.fn.update_template = function(){
 				regex = ''
 				+ '(\\$selector' + prev.selector_index +')'
 				+ '([^}]+})'
-				+ '(\\s+)';
+				+ '(\\s*)';
 			}
 			else if (prev.type === 'comment'){
 				regex = ''
 				+ '(\\$property' + prev.index +')'
 				+ '([^]*?\\*/)'
-				+ '(\\s+)';
+				+ '(\\s*)';
 			}
 			
 			
@@ -693,13 +693,13 @@ ss.fn.update_template = function(){
 				regex = ''
 				+ '(\\$selector' + prev.selector_index +')'
 				+ '([^}]+})'
-				+ '(\\s+)';
+				+ '(\\s*)';
 			}
 			else if (prev.type === 'comment'){
 				regex = ''
 				+ '(\\$property' + prev.index +')'
 				+ '([^]*?\\*/)'
-				+ '(\\s+)';
+				+ '(\\s*)';
 			}
 			var m = template.match(new RegExp(regex));
 			var string = '/*$property'+prop_index+'*/';
