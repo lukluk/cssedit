@@ -9,7 +9,6 @@ error_reporting(E_ALL | E_STRICT);
 $base = realpath(dirname(__FILE__)).DIRECTORY_SEPARATOR;
 
 if (empty($_POST['file']) || empty($_POST['css'])){
-	var_dump($_SERVER);
 	echo
 	  '<!DOCTYPE html>'
 	. '<html>'
