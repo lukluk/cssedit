@@ -851,6 +851,80 @@ ss.fn.render = function(){
 ss.fn.update_element = function(){
 	this.styleObject.html( this.render() );
 }
+
+ss.fn.path = function(){
+	var url = this.url;
+	base = c.document.location.protocol + '//' + c.document.location.host + c.document.location.pathname;
+	
+	// Make sure there is not a trailing slash on url
+	if (url.substr(-1) == '/')  url = url.substr(0,url.length-1);
+	// Base needs one though
+	if (base.substr(-1) != '/') base += '/';
+	
+	// Split up the base url
+	var parts = base.match(/((?:http:\/\/)(?:www\.)|(?:http:\/\/)|(?:www\.)|())([\w\d.]+(\.[\w]+)*)(.*)/i);
+	base = {
+		'scheme':  parts[1]
+		,'host':   parts[3]
+		,'path':   parts[5]
+	};
+	
+	// If it's already an absolute path
+	if (url.match('http://') !== null) return url;
+	
+	// If the path is from root
+	if (url[0] == '/'){
+		//var absUrl = location.protocol + '//' + location.host + url;
+		return location.protocol + '//' + location.host + url;
+	}
+	
+	var  path      = base.path.split('/')
+		,url_path  = url.split('/')
+		,end = url_path.pop();
+	
+	path.pop();
+	
+	for (i in url_path) {
+		segment = url_path[i];
+		if (segment == '.'){
+			// skip
+		}
+		else if (segment == '..' && path && path[path.length-1] != '..'){
+			path.pop();
+		}
+		else{
+			path.push(segment);
+		}
+	}
+	
+	if (end == '.'){
+		path.push('');
+	}
+	else if (end == '..' && path && path[path.length-1] != '..'){
+		path[path.length-1] = '';
+	}
+	else{
+		path.push(end);
+	}
+	
+	// Absolute path
+	return base.scheme + base.host  + path.join('/');
+	}
+
+
+ss.fn.save = function(){
+	var url = localStorage.getItem('cssedit_path');
+	if (url === null){
+		alert('Please visit the cssedit page so we can set some things up.');
+		return false;
+	}
+	else{
+		$.post(url, {file: this.path(), css: this.render()}, function(){
+			
+		});
+	}
+}
+
 if (typeof window.cssedit == 'undefined'){
 	window.cssedit = c;
 }
