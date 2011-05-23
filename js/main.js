@@ -61,6 +61,10 @@ c.init = function(){
 				
 			}
 		});
+			
+		$('#save').button({icons: {primary: 'ui-icon-disk'}}).click(function(e){
+			c.ss.save();
+		});
 		
 		// Events for dropdown menu to change stylesheets
 		$('#cssedit_file').change(function(e){
