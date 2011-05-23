@@ -357,6 +357,15 @@ c.init = function(){
 			sel.addRange(range);
 		}
 	});
+	
+	// ctrl+s saves current stylesheet
+	$(window).bind('keydown', function(e){
+		if (e.which === 83 && e.metaKey === true){
+			e.preventDefault();
+			
+			c.ss.save();
+		}
+	});
 }
 
 c.getFiles = function(){
