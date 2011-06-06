@@ -4,7 +4,7 @@ var c = {};
 var url = 'http://localhost/cssedit/';
 c.indexes = {};
 c.container = $('body'); // Container we are rendering to
-c.files; // All known CSS files
+c.files = []; // All known CSS files
 c.stylesheets = {};
 c.ss = false; // Quick access to current stylesheet
 c.document = false;
