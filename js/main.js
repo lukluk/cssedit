@@ -37,7 +37,7 @@ c.init = function(){
 	c.files = c.getFiles();
 	
 	// Get templates
-	$.get(url + 'templates/interface.html', function(data){
+	$.getJSON(url + 'templates/interface.php?callback=?', function(data){
 		$.template('interface',data);
 		$.tmpl('interface',{files: c.files}).appendTo(c.container);
 		
@@ -72,7 +72,7 @@ c.init = function(){
 			c.display(url);
 		});
 
-		$.get(url + 'templates/css.html', function(data){
+		$.getJSON(url + 'templates/css.php?callback=?', function(data){
 			$.template('css', data);
 			
 			// Auto display the first CSS file
