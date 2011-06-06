@@ -18,7 +18,7 @@ if (empty($_POST['file']) || empty($_POST['css'])){
 	. '<body>'
 		. 'Storing needed values. You should now be able to use cssedit.'
 		. '<script type="text/javascript">'
-			. 'localStorage.setItem("cssedit_path", "' . $_SERVER['PHP_SELF'] . '");'
+			. 'localStorage.setItem("cssedit_path", "http://'. $_SERVER['HTTP_HOST'] . $_SERVER['PHP_SELF'] . '");'
 		. '</script>'
 	. '</body>'
 	. '</html>';
