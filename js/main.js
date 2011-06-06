@@ -474,7 +474,7 @@ var ss = c.StyleSheet = function(url){
 	var css = '';
 	$.ajax({
 		async: false
-		,url: url
+		,url: this.path()
 		,cache: false
 		,success: function(data){
 			css = data;
