@@ -46,25 +46,7 @@ c.init = function(){
 		$.tmpl('interface',{files: c.files}).appendTo(c.container);
 		
 		$('#toggle_expand').button({icons:{primary: 'ui-icon-newwin'}}).click(function(){
-			if (window.parent !== window){
-				var page = window.open(c.driver + '?empty','CSSEdit','menubar=no,toolbar=no,location=no,personalbar=no,status=no,dependent=yes,scrollbars=yes');
-
-				var inter = setInterval(function(){
-					if(page.document.readyState === 'complete' && page.location.href === c.driver + '?empty'){
-						c.move(page);
-						clearInterval(inter);
-					}
-				},1);
-			}
-			else{
-				var iframe = c.document.createElement('iframe');
-				iframe.setAttribute('src','about:blank');
-				iframe.onload = function(){
-					c.move(iframe.contentWindow);
-				}
-				c.document.body.appendChild(iframe);
-				
-			}
+			c.move();
 		});
 			
 		$('#save').button({icons: {primary: 'ui-icon-disk'}}).click(function(e){
@@ -399,46 +381,76 @@ c.display = function(url){
 	c.ss = c.stylesheets[url];
 }
 
-c.move = function(target){
-	var head = target.document.head;
+c.move = function(){
+	var action;
+
+	// In iframe
+	if (window.parent !== window){
+		action = 'hide';
+		var page = window.open(c.driver + '?empty','CSSEdit','menubar=no,toolbar=no,location=no,personalbar=no,status=no,dependent=yes,scrollbars=yes');
 		
-	var scripts = ['js/jquery-1.5.2.js','js/jquery-ui-1.8.11.custom.min.js','js/jquery.tmpl.js','js/main.js'];
-	var styles = ['css/master.css','css/theme/jquery-ui-1.8.11.custom.css'];
-	
-	for (i in styles){
-		var style = target.document.createElement('link');
-		style.setAttribute('type','text/css');
-		style.setAttribute('rel','stylesheet');
-		style.setAttribute('href',url+styles[i]);
-		head.appendChild(style);
+		// Wait for page load
+		var inter = setInterval(function(){
+			if(page.document.readyState === 'complete' && page.location.href === c.driver + '?empty'){
+				clearInterval(inter);
+				
+				var head = page.document.head
+					,scripts = ['js/jquery-1.5.2.js','js/jquery-ui-1.8.11.custom.min.js','js/jquery.tmpl.js','js/main.js']
+					,styles = ['css/master.css','css/theme/jquery-ui-1.8.11.custom.css']
+				
+				for (i in styles){
+					var style = page.document.createElement('link');
+					style.setAttribute('type','text/css');
+					style.setAttribute('rel','stylesheet');
+					style.setAttribute('href',url+styles[i]);
+					head.appendChild(style);
+				}
+				
+				// Load jQuery into new document
+				for (i in scripts){
+					var script = page.document.createElement('script');
+					script.setAttribute('type','text/javascript');
+					script.setAttribute('src',url + scripts[i]);
+					script.async = false;
+					head.insertBefore(script, head.firstChild);
+				}
+				
+				// Wait for all scripts to load by checking for existance of cssedit
+				var inter2 = setInterval(function(){
+					if (typeof page.cssedit !== 'undefined'){
+						page.cssedit.files = c.files;
+						page.cssedit.stylesheets = c.stylesheets;
+						page.cssedit.document = c.document;
+						page.cssedit.window = c.window;
+						page.cssedit.init();
+						
+						// Display current css file
+						page.cssedit.display(c.ss.url);
+						
+						// Remove our current view
+						clearInterval(inter2);
+					}
+				},1);
+			}
+		},1);
 	}
-	
-	// Load jQuery into new document
-	for (i in scripts){
-		var script = target.document.createElement('script');
-		script.setAttribute('type','text/javascript');
-		script.setAttribute('src',url + scripts[i]);
-		script.async = false;
-		head.insertBefore(script, head.firstChild);
+	// In popup
+	else{
+		action = 'show';
+		window.close();
 	}
-	
-	// Chrome doesn't seem to like script.onload so check for existance of cssedit
-	var inter = setInterval(function(){
-		if (typeof target.cssedit !== 'undefined'){
-			target.cssedit.files = c.files;
-			target.cssedit.stylesheets = c.stylesheets;
-			target.cssedit.document = c.document;
-			target.cssedit.window = c.window;
-			target.cssedit.init();
+
+	// Hide/show iframe
+	$(c.document).find('iframe').each(function(i, e){
+		if (e.contentWindow.location.href === c.driver + '?empty'){
+			$(e)[action]();
 			
-			// Display current css file
-			target.cssedit.display(c.ss.url);
-			
-			// Remove our current view
-			c.destruct();
-			clearInterval(inter);
+			if (action === 'show'){
+				e.contentWindow.cssedit.display(c.ss.url);
+			}
 		}
-	},1);
+	});
+
 }
 
 c.destruct = function(){
@@ -447,7 +459,7 @@ c.destruct = function(){
 		c.document = window.parent.document;
 		$(window.parent.document).find('iframe').each(function(i,e){
 			if (e.contentDocument === document){
-				$(e).remove();
+				$(e).hide();
 			}
 		});
 	}
