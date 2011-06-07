@@ -39,20 +39,20 @@ c.init = function(){
 	// CSS files will be limited by same-origin policy so make sure they are
 	// on the same domain.
 	if(c.files.length === 0) c.files = c.getFiles();
-	
+
 	// Get templates
 	$.getJSON(url + 'templates/interface.php?callback=?', function(data){
 		$.template('interface',data);
 		$.tmpl('interface',{files: c.files}).appendTo(c.container);
-		
+
 		$('#toggle_expand').button({icons:{primary: 'ui-icon-newwin'}}).click(function(){
 			c.move();
 		});
-			
+
 		$('#save').button({icons: {primary: 'ui-icon-disk'}}).click(function(e){
 			c.ss.save();
 		});
-		
+
 		// Events for dropdown menu to change stylesheets
 		$('#cssedit_file').change(function(e){
 			var url = c.files[ $(e.target).val() ];
@@ -61,28 +61,28 @@ c.init = function(){
 
 		$.getJSON(url + 'templates/css.php?callback=?', function(data){
 			$.template('css', data);
-			
+
 			// Auto display the first CSS file
 			c.display(c.files[0]);
 		});
 	});
-	
+
 	// Setup events
 
 	// Right clicking things
 	$('#stylesheet').live('contextmenu mousedown mouseup', function(e){
 		if (e.which === 3){
 			e.preventDefault();
-			
+
 			// In firefox in no contenteditable element is focus it will select everything
 			var target = $(e.target);
 			if (target.attr('class') === 'selector') target.focus();
 			else if (target.attr('class') === 'dec') target.find('.selector').focus();
 			else if (target.attr('class') === 'property') target.find('.name').focus();
 			else if (target.attr('id') === 'stylesheet') $('.selector:eq(0)').focus();
-			
+
 			if (e.type == 'mouseup'){
-			
+
 				// Show menu to delete/insert property
 				if(target.is('.property,.name,.value')){
 					var menu = $('<div />',{'class':'cssedit_menu'})
@@ -91,7 +91,7 @@ c.init = function(){
 					.mouseleave(function(e){
 						$(this).remove();
 					});
-					
+
 					$('<a />').text('Delete')
 					.appendTo(menu)
 					.button()
@@ -104,7 +104,7 @@ c.init = function(){
 						c.ss.update_element();
 						e.data.property.remove();
 					});
-					
+
 					$('<a />')
 					.text('Insert')
 					.appendTo(menu)
@@ -113,7 +113,7 @@ c.init = function(){
 						e.data.target.trigger('add_property');
 					});
 				}
-				
+
 				// Show menu to insert dec/comment
 				else if (target.is('.grabber')){
 					var menu = $('<div />',{'class':'cssedit_menu'})
@@ -122,7 +122,7 @@ c.init = function(){
 					.mouseleave(function(e){
 						$(this).remove();
 					});
-					
+
 					$('<a />').text('Add comment').button()
 					.bind('click',{target: target}, function(e){
 						$(e.target).parent().parent().remove();
@@ -137,7 +137,7 @@ c.init = function(){
 					})
 					.appendTo(menu);
 				}
-				
+
 				// Show menu to remove comments
 				else if (target.is('.comment')){
 					var menu = $('<div />',{'class':'cssedit_menu'})
@@ -146,7 +146,7 @@ c.init = function(){
 					.mouseleave(function(e){
 						$(this).remove();
 					});
-					
+
 					$('<a />').text('Delete comment').button()
 					.bind('click',{target: target}, function(e){
 						$(e.target).parent().parent().remove();
@@ -157,12 +157,12 @@ c.init = function(){
 			}
 		}
 	});
-	
+
 	// Prevent new lines
 	$('.selector, .value, .property','.dec').live('keypress', function(e){
 		return e.which != 13;
 	});
-	
+
 	$('.dec .selector').live('keyup', function(e){
 		// Pressing enter on a selector for a dec with no properties adds
 		// a property
@@ -175,7 +175,7 @@ c.init = function(){
 				$(e.target).parent().find('.properties').trigger('add_property');
 			}
 		}
-		
+
 		// Else update object
 		else{
 			var index = $(e.target).parent('.dec').index('.dec,.comment');
@@ -183,19 +183,19 @@ c.init = function(){
 			c.ss.update_element();
 		}
 	});
-	
+
 	// Changing comment
 	$('.comment').live('keyup',function(e){
 		var index = $(e.target).index('.dec,.comment');
 		c.ss.styles[index].text = $(e.target).html().replace(new RegExp('<br>', 'gi'), "\n");
 	});
-	
+
 	// Value/name navigation
 	$('.dec .name,.dec .value').live('keyup',function(e){
 		if(e.which === 13){
 			var type = $(e.target).attr('class')
 				,next = (type == 'property' ? $(e.target).next().next() : $(e.target).next());
-				
+
 			// Add a new property/value set
 			if(next.length == 0){
 				$(e.target).trigger('add_property');
@@ -213,19 +213,19 @@ c.init = function(){
 			c.ss.update_element();
 		}
 	});
-	
+
 	// Auto remove empty properties
 	$('.dec .property').live('focusout',function(e){
 		if($(e.target).closest('.property').text() === ''){
 			$(e.target).parent().remove();
 		}
 	});
-	
+
 	// Auto remove empty comments
 	$('.comment').live('keyup',function(e){
 		if ( $.trim($(e.target).text()) === '') $(e.target).trigger('delete_comment');
 	});
-	
+
 	// Enable/disable property
 	$('.dec input[type="checkbox"]').live('change',function(e){
 		var dec = $(e.target).closest('.dec').index('.dec,.comment')
@@ -238,7 +238,7 @@ c.init = function(){
 	$('.property').live('keyup',function(e){
 		if (e.which === 45) $(e.target).trigger('add_property');
 	});
-	
+
 	// Add property after e.target
 	$('.properties').live('add_property',function(e){
 		var dec = $(e.target).closest('.dec').index('.dec,.comment');
@@ -250,7 +250,7 @@ c.init = function(){
 		else if (target.is('.property,.name,.value')){
 			var prop = $(e.target).closest('.property').index()+1;
 			var wrap = $('<div />',{'class':'property'}).insertAfter(target.parent());
-			
+
 		}
 		c.ss.styles[dec].properties.splice(prop,0,{
 			name: ''
@@ -259,12 +259,12 @@ c.init = function(){
 		});
 		c.ss.update_template();
 		c.ss.update_element();
-		
+
 		$('<input />',{'type': 'checkbox','checked':'checked'}).appendTo(wrap);
 		$('<div />',{'class': 'name','contenteditable':'true'}).appendTo(wrap).focus();
 		$('<div />',{'class': 'value','contenteditable':'true'}).appendTo(wrap);
 	});
-	
+
 	// Add comment after e.target
 	$('.grabber').live('add_comment',function(e){
 		var target = $(e.target)
@@ -274,32 +274,32 @@ c.init = function(){
 			,text: ''
 		});
 		c.ss.update_template();
-		
+
 		$('<div />',{'class':'grabber'}).insertAfter(target);
 		$('<div />',{'class':'comment','contenteditable':'true'}).insertAfter(target).focus();
 	});
-	
+
 	// Add dec after e.target
 	$('.grabber').live('add_dec',function(e){
 		var target = $(e.target)
 			,index = target.prev().index('.dec,.comment')+1;
-		
+
 		c.ss.styles.splice(index,0,{
 			type: 'dec'
 			,selector: ''
 			,properties: []
 		});
 		c.ss.update_template();
-		
+
 		$('<div />',{'class':'grabber'}).insertAfter(target);
 		var dec = $('<div />',{'class':'dec','contenteditable':'false'}).insertAfter(target);
-		
+
 		$('<div />',{'class':'selector','contenteditable':'true'}).appendTo(dec).focus();
-		
+
 		var props = $('<div />',{'class':'properties'}).appendTo(dec);
-		
+
 	});
-	
+
 	// Delete comment
 	$('.comment').live('delete_comment',function(e){
 		var target = $(e.target);
@@ -308,7 +308,7 @@ c.init = function(){
 		c.ss.update_template();
 		target.next('.grabber').andSelf().remove();
 	});
-	
+
 	// Skip over checkboxes when tabbing through things
 	$('#stylesheet input:checkbox').live('keyup',function(e){
 		if (e.which === 9){
@@ -316,47 +316,56 @@ c.init = function(){
 			else $(this).parent().prev().find('.value').focus();
 		}
 	});
-	
+
 	// Increment numeric values using up/down arrow keys
 	$('.value').live('keydown',function(e){
 		var target = $(this);
-		
+
 		// Get what is at cursor location
 		var offset = window.getSelection().getRangeAt(0).startOffset
 			,regex = new RegExp('(.{0,'+offset+'})(\\s|^)(-{0,1}[\\d]+)([\\w]*)(\\s|$)')
 			,unit = target.text().match(regex);
-		
+
 		if(unit !== null && unit[3].length > 0){
 			var i = parseInt(unit[3]);
 			var number;
 			if (e.shiftKey === false) number = 1;
 			else number = 10;
-			
+
 			if (e.which === 38) i += number;
 			else if (e.which === 40) i -= number;
 			else return;
-		
+
 			target.text( target.text().replace(regex, '$1$2'+i+ (unit[4] || 'px') +'$5'));
 			var range = document.createRange();
 
 			range.setStart(this.firstChild,offset);
 			range.setEnd(this.firstChild,offset);
-			
+
 			var sel = window.getSelection();
 			e.preventDefault();
 			sel.removeAllRanges();
 			sel.addRange(range);
 		}
 	});
-	
+
 	// ctrl+s saves current stylesheet
 	$(window).bind('keydown', function(e){
 		if (e.which === 83 && e.metaKey === true){
 			e.preventDefault();
-			
+
 			c.ss.save();
 		}
+		// ctrl+w and in popup
+		else if (e.which === 87 && e.metaKey === true && window === window.parent){
+			c.move();
+		}
 	});
+	$(window).bind('unload', function(e){
+		if (window === window.parent){
+			c.move();
+		}
+	})
 }
 
 c.getFiles = function(){
@@ -366,7 +375,7 @@ c.getFiles = function(){
 		var href = $(this).attr('href');
 		if ($.inArray(href, our_css) === -1) files.push( href );
 	});
-	
+
 	return files;
 }
 
@@ -374,7 +383,7 @@ c.display = function(url){
 	if (typeof c.stylesheets[url] === 'undefined'){
 		c.stylesheets[url] = new ss(url);
 	}
-	
+
 	// Generate css display if there were no errors
 	$('#stylesheet').html( $.tmpl('css', {decs: c.stylesheets[url].styles}) );
 
@@ -388,16 +397,16 @@ c.move = function(){
 	if (window.parent !== window){
 		action = 'hide';
 		var page = window.open(c.driver + '?empty','CSSEdit','menubar=no,toolbar=no,location=no,personalbar=no,status=no,dependent=yes,scrollbars=yes');
-		
+
 		// Wait for page load
 		var inter = setInterval(function(){
 			if(page.document.readyState === 'complete' && page.location.href === c.driver + '?empty'){
 				clearInterval(inter);
-				
+
 				var head = page.document.getElementsByTagName('head')[0]
 					,scripts = ['js/jquery-1.5.2.js','js/jquery-ui-1.8.11.custom.min.js','js/jquery.tmpl.js','js/main.js']
 					,styles = ['css/master.css','css/theme/jquery-ui-1.8.11.custom.css']
-				
+
 				for (i in styles){
 					var style = page.document.createElement('link');
 					style.setAttribute('type','text/css');
@@ -405,7 +414,7 @@ c.move = function(){
 					style.setAttribute('href',url+styles[i]);
 					head.appendChild(style);
 				}
-				
+
 				// Load jQuery into new document
 				for (i in scripts){
 					var script = page.document.createElement('script');
@@ -414,7 +423,7 @@ c.move = function(){
 					script.async = false;
 					head.insertBefore(script, head.firstChild);
 				}
-				
+
 				// Wait for all scripts to load by checking for existance of cssedit
 				var inter2 = setInterval(function(){
 					if (typeof page.cssedit !== 'undefined'){
@@ -423,10 +432,10 @@ c.move = function(){
 						page.cssedit.document = c.document;
 						page.cssedit.window = c.window;
 						page.cssedit.init();
-						
+
 						// Display current css file
 						page.cssedit.display(c.ss.url);
-						
+
 						// Remove our current view
 						clearInterval(inter2);
 					}
@@ -444,7 +453,7 @@ c.move = function(){
 	$(c.document).find('iframe').each(function(i, e){
 		if (e.contentWindow.location.href === c.driver + '?empty'){
 			$(e)[action]();
-			
+
 			if (action === 'show'){
 				e.contentWindow.cssedit.display(c.ss.url);
 			}
@@ -454,7 +463,7 @@ c.move = function(){
 }
 
 var ss = c.StyleSheet = function(url){
-	
+
 	// url of stylesheet
 	this.url = url;
 	var css = '';
@@ -466,27 +475,27 @@ var ss = c.StyleSheet = function(url){
 			css = data;
 		}
 	});
-	
+
 	this.css = css;
-	
+
 	// Where we will be updating the css
 	this.styleObject = $('<style />',{type: 'text/css'}).appendTo(c.document.head);
-	
+
 	this.indexes = {}; // Indexes for template
 	this.indexes.selector = 0;
 	this.indexes.prop     = 0;
 	this.indexes.value    = 0;
-	
+
 	this.template  = ''; // Template for rendering
 	this.styles = []; // Parsed styles from this.css
-	
+
 	// Setup everything
 	this.parse();
 	this.styleObject.html( this.render() );
-	
+
 	// Remove link to original stylesheet
 	$('link[href="'+url+'"]',c.document).remove();
-	
+
 	return this;
 }
 
@@ -510,10 +519,10 @@ ss.fn.parse = function(){
 		,prop_index = 0
 		,value_index = 0
 		,comment_index = 0;
-	
+
 	// Start processing css
 	// start with decs
-	
+
 	for(var i = 0; i < css.length; i++){
 		var c = css[i];
 		current += c;
@@ -533,7 +542,7 @@ ss.fn.parse = function(){
 				continue;
 			}
 		}
-		
+
 		// Look for the end of decs
 		if (in_dec === true && c === '}'){
 			if (property !== '' && value !== ''){
@@ -586,7 +595,7 @@ ss.fn.parse = function(){
 			i++;
 			continue;
 		}
-		
+
 		if (in_dec === false && in_comment === false){
 			selector += c;
 		}
@@ -630,14 +639,14 @@ ss.fn.parse = function(){
 	this.indexes.value    = value_index;
 	this.template  = place_holder += current;
 	this.styles = obj;
-	
+
 	return this;
 }
 
 ss.fn.update_template = function(){
 	var template = this.template;
 	var obj = this.styles;
-	
+
 	// Get last indexes
 	selector_index = this.indexes.selector;
 	prop_index     = this.indexes.prop;
@@ -645,7 +654,7 @@ ss.fn.update_template = function(){
 
 	for (i in obj){
 		var e = obj[i];
-		
+
 		if (e.type === 'dec' && typeof e.selector_index === 'undefined'){
 			// Insert comment after the last thing
 			var prev = obj[i-1];
@@ -663,8 +672,8 @@ ss.fn.update_template = function(){
 				+ '([^]*?\\*/)'
 				+ '(\\s*)';
 			}
-			
-			
+
+
 			var m = template.match(new RegExp(regex));
 			var string = '$selector'+selector_index+'{}';
 			e.selector_index = selector_index++;
@@ -697,14 +706,14 @@ ss.fn.update_template = function(){
 			+ '/\\*\\$property'+e.index+'\\*/'
 			+ '\\s*';
 			template = template.replace(new RegExp(regex), '');
-			
+
 			obj.splice(i,1);
 		}
 
 		for (x in e.properties){
 			x = parseInt(x);
 			var p = e.properties[x];
-			
+
 			if (typeof p.prop_index === 'undefined' && typeof p.deleted === 'undefined'){
 				// Get spacing at the start of the line
 				// Look back one property in current dec
@@ -741,7 +750,7 @@ ss.fn.update_template = function(){
 						var empty = true;
 					}
 				}
-				
+
 				var regex = ''
 					+ '([^{;]*?)' //1
 					+ '\\$property' + match_prop_index
@@ -753,14 +762,14 @@ ss.fn.update_template = function(){
 					+ '(;|)' //5
 					+ '([\\s]*)' //6
 					+ '(}|)'; //7
-					
+
 				var m = template.match(new RegExp(regex));
 				if (empty){
 					var string = ''
 					+ '(\\$selector' + e.selector_index
 					+ '\\s*'
 					+ '{)'
-					
+
 					var n = m[1]+'$property'+prop_index+m[2]+':'+m[3]+'$value'+value_index+m[4]+';'+m[6];
 					template = template.replace(new RegExp(string),'$1'+n);
 				}
@@ -787,12 +796,12 @@ ss.fn.update_template = function(){
 					+ '\\$value' + p.value_index
 					+ '([^]*?)'
 					+ '(;|})';
-					
+
 				template = template.replace(new RegExp(regex),'');
 				e.properties.splice(x,1);
 			}
 		}
-		
+
 	}
 	this.indexes.selector = selector_index;
 	this.indexes.prop     = prop_index;
@@ -806,7 +815,7 @@ ss.fn.render = function(){
 	//this.update_template();
 	var obj = this.styles;
 	var template = this.template;
-	
+
 	// Start with replacing known values
 	// Keep track of new values too, we will be dealing with those next
 	var stylesheet = template;
@@ -814,15 +823,15 @@ ss.fn.render = function(){
 		var e = obj[i];
 		if (e.type == 'dec'){
 			if (typeof e.selector_index === 'undefined') continue;
-		
+
 			stylesheet = stylesheet.replace('$selector' + e.selector_index, e.selector);
-			
+
 			// handle undefined properties
-			
+
 			for (x in e.properties){
 				var p = e.properties[x];
 				if (typeof p.prop_index === 'undefined'){
-					
+
 				}
 				else{
 					// if disabled wrap in comment
@@ -831,7 +840,7 @@ ss.fn.render = function(){
 						.replace('$property'+p.prop_index,'/*$property'+p.prop_index)
 						.replace(new RegExp('(\\$value'+p.value_index+')(\s*(;|}))','g'),'$1$2*/')
 					}
-					
+
 					stylesheet = stylesheet
 					.replace('$property'+p.prop_index, p.name)
 					.replace('$value'+p.value_index, p.value)
@@ -854,12 +863,12 @@ ss.fn.update_element = function(){
 ss.fn.path = function(){
 	var url = this.url;
 	base = c.document.location.protocol + '//' + c.document.location.host + c.document.location.pathname;
-	
+
 	// Make sure there is not a trailing slash on url
 	if (url.substr(-1) == '/')  url = url.substr(0,url.length-1);
 	// Base needs one though
 	if (base.substr(-1) != '/') base += '/';
-	
+
 	// Split up the base url
 	var parts = base.match(/((?:http:\/\/)(?:www\.)|(?:http:\/\/)|(?:www\.)|())([\w\d.]+(\.[\w]+)*)(.*)/i);
 	base = {
@@ -867,22 +876,22 @@ ss.fn.path = function(){
 		,'host':   parts[3]
 		,'path':   parts[5]
 	};
-	
+
 	// If it's already an absolute path
 	if (url.match('http://') !== null) return url;
-	
+
 	// If the path is from root
 	if (url[0] == '/'){
 		//var absUrl = location.protocol + '//' + location.host + url;
 		return location.protocol + '//' + location.host + url;
 	}
-	
+
 	var  path      = base.path.split('/')
 		,url_path  = url.split('/')
 		,end = url_path.pop();
-	
+
 	path.pop();
-	
+
 	for (i in url_path) {
 		segment = url_path[i];
 		if (segment == '.'){
@@ -895,7 +904,7 @@ ss.fn.path = function(){
 			path.push(segment);
 		}
 	}
-	
+
 	if (end == '.'){
 		path.push('');
 	}
@@ -905,7 +914,7 @@ ss.fn.path = function(){
 	else{
 		path.push(end);
 	}
-	
+
 	// Absolute path
 	return base.scheme + base.host  + path.join('/');
 }
@@ -913,7 +922,7 @@ ss.fn.path = function(){
 
 ss.fn.save = function(){
 	$.post(c.driver, {file: this.path(), css: this.render()}, function(){
-		
+
 	});
 }
 
