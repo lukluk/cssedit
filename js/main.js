@@ -453,22 +453,6 @@ c.move = function(){
 
 }
 
-c.destruct = function(){
-	// If we are in an iframe find it and remove it
-	if (window.parent !== window){
-		c.document = window.parent.document;
-		$(window.parent.document).find('iframe').each(function(i,e){
-			if (e.contentDocument === document){
-				$(e).hide();
-			}
-		});
-	}
-	// If we are in a popup close it
-	else{
-		window.close();
-	}
-}
-
 var ss = c.StyleSheet = function(url){
 	
 	// url of stylesheet
