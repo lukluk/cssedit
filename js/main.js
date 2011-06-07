@@ -8,6 +8,11 @@ c.files = []; // All known CSS files
 c.stylesheets = {};
 c.ss = false; // Quick access to current stylesheet
 c.document = false;
+c.driver = localStorage.getItem('cssedit_path');
+if (c.driver === null){
+	alert('You must vist the page of your driver');
+	return false;
+}
 
 c.init = function(){
 	// If we are in an iframe find it and resize it
@@ -42,10 +47,10 @@ c.init = function(){
 		
 		$('#toggle_expand').button({icons:{primary: 'ui-icon-newwin'}}).click(function(){
 			if (window.parent !== window){
-				var page = window.open(localStorage.getItem('cssedit_path') + '?empty','CSSEdit','menubar=no,toolbar=no,location=no,personalbar=no,status=no,dependent=yes,scrollbars=yes');
+				var page = window.open(c.driver + '?empty','CSSEdit','menubar=no,toolbar=no,location=no,personalbar=no,status=no,dependent=yes,scrollbars=yes');
 
 				var inter = setInterval(function(){
-					if(page.document.readyState === 'complete' && page.location.href === localStorage.getItem('cssedit_path') + '?empty'){
+					if(page.document.readyState === 'complete' && page.location.href === c.driver + '?empty'){
 						c.move(page);
 						clearInterval(inter);
 					}
@@ -907,20 +912,13 @@ ss.fn.path = function(){
 	
 	// Absolute path
 	return base.scheme + base.host  + path.join('/');
-	}
+}
 
 
 ss.fn.save = function(){
-	var url = localStorage.getItem('cssedit_path');
-	if (url === null){
-		alert('Please visit the cssedit page so we can set some things up.');
-		return false;
-	}
-	else{
-		$.post(url, {file: this.path(), css: this.render()}, function(){
-			
-		});
-	}
+	$.post(c.driver, {file: this.path(), css: this.render()}, function(){
+		
+	});
 }
 
 if (typeof window.cssedit == 'undefined'){
