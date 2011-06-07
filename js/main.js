@@ -409,45 +409,30 @@ c.move = function(target){
 	}
 	
 	// Load jQuery into new document
-	var script = target.document.createElement('script');
-	script.setAttribute('type','text/javascript');
-	script.setAttribute('src',url +'js/jquery-1.5.2.js');
-	
-	// Keep track of whether onload has been called or not
-	var onloaded = false;
-	script.onload = function(){
-		onloaded = true;
-		
-		// Start loading in scripts using jQuery
-		target.jQuery.getScript(url +'js/jquery-ui-1.8.11.custom.min.js', function(){
-			target.jQuery.getScript(url +'js/jquery.tmpl.js', function(){
-				target.jQuery.getScript(url +'js/main.js', function(){
-					target.cssedit.stylesheets = c.stylesheets;
-					target.cssedit.ss = c.ss;
-					target.cssedit.document = c.document;
-					target.cssedit.files = c.files;
-					
-					// Display current css file
-					target.cssedit.display(c.ss.url);
-					
-					// Remove our current view
-					c.destruct();
-				});
-			});
-		});
+	for (i in scripts){
+		var script = target.document.createElement('script');
+		script.setAttribute('type','text/javascript');
+		script.setAttribute('src',url + scripts[i]);
+		script.async = false;
+		head.insertBefore(script, head.firstChild);
 	}
-	head.insertBefore(script, head.firstChild);
 	
-	// Chrome doesn't seem to like script.onload so check for existance of jQuery
+	// Chrome doesn't seem to like script.onload so check for existance of cssedit
 	var inter = setInterval(function(){
-		if (onloaded === false){
-			if (typeof target.jQuery !== 'undefined'){
-				onloaded = true;
-				script.onload();
-				clearInterval(inter);
-			}
+		if (typeof target.cssedit !== 'undefined'){
+			target.cssedit.files = c.files;
+			target.cssedit.stylesheets = c.stylesheets;
+			target.cssedit.document = c.document;
+			target.cssedit.window = c.window;
+			target.cssedit.init();
+			
+			// Display current css file
+			target.cssedit.display(c.ss.url);
+			
+			// Remove our current view
+			c.destruct();
+			clearInterval(inter);
 		}
-		else clearInterval(inter);
 	},1);
 }
 
