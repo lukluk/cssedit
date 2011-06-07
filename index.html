@@ -4,12 +4,13 @@
 <head>
     <title>CSSEdit demo page</title>
 	<link type="text/css" rel="stylesheet" href="css/demo.css" />
+	<script type="text/javascript" src="js/jquery-1.5.2.js"></script>
 	<script type="text/javascript">
 	// This will eventually be a bookmarklet
 	window.onload = function(){
 		var body = document.body;
 		var iframe = document.createElement('iframe');
-		iframe.setAttribute('src','about:blank');
+		iframe.setAttribute('src',localStorage.getItem('cssedit_path') + '?empty');
 		iframe.onload = function(){
 			var head = iframe.contentDocument.head;
 			
@@ -20,23 +21,26 @@
 				var style = iframe.contentDocument.createElement('link');
 				style.setAttribute('type','text/css');
 				style.setAttribute('rel','stylesheet');
-				style.setAttribute('href',styles[i]);
+				style.setAttribute('href','http://localhost/cssedit/'+styles[i]);
 				head.appendChild(style);
-			}
+			};
 			
 			var x = 0;
 			var addScript = function(){
-				if(typeof scripts[x] === 'undefined') return false;
+				if(typeof scripts[x] === 'undefined'){
+					iframe.contentWindow.cssedit.init();
+					return false;
+				}
 				
 				var script = iframe.contentDocument.createElement('script');
 				script.setAttribute('type','text/javascript');
-				script.setAttribute('src',scripts[x]);
+				script.setAttribute('src','http://localhost/cssedit/'+scripts[x]);
 				x++;
 				script.onload = addScript;
 				head.appendChild(script);
-			}
+			};
 			addScript();
-		}
+		};
 		
 		body.appendChild(iframe);
 	}

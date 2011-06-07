@@ -926,9 +926,4 @@ if (typeof window.cssedit == 'undefined'){
 	window.cssedit = c;
 }
 
-// When the document is ready call init
-$(function(){
-	c.init();
-});
-
 })(jQuery);
