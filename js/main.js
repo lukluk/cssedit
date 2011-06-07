@@ -42,13 +42,14 @@ c.init = function(){
 		
 		$('#toggle_expand').button({icons:{primary: 'ui-icon-newwin'}}).click(function(){
 			if (window.parent !== window){
-				var page = window.open('about:blank','CSSEdit','menubar=no,toolbar=no,location=no,personalbar=no,status=no,dependent=yes,scrollbars=yes');
-				var onloaded = false;
-				page.onload = function(){
-					c.move(page);
-				}
-				
-				if (!onloaded && page.document.readyState === 'complete') page.onload();
+				var page = window.open(localStorage.getItem('cssedit_path') + '?empty','CSSEdit','menubar=no,toolbar=no,location=no,personalbar=no,status=no,dependent=yes,scrollbars=yes');
+
+				var inter = setInterval(function(){
+					if(page.document.readyState === 'complete' && page.location.href === localStorage.getItem('cssedit_path') + '?empty'){
+						c.move(page);
+						clearInterval(inter);
+					}
+				},1);
 			}
 			else{
 				var iframe = c.document.createElement('iframe');

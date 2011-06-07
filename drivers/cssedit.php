@@ -8,7 +8,10 @@ goes live.
 error_reporting(E_ALL | E_STRICT);
 $base = realpath(dirname(__FILE__)).DIRECTORY_SEPARATOR;
 
-if (empty($_POST['file']) || empty($_POST['css'])){
+if(isset($_GET['empty'])){
+	
+}
+else if (empty($_POST['file']) || empty($_POST['css'])){
 	echo
 	  '<!DOCTYPE html>'
 	. '<html>'
