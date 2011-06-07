@@ -12,7 +12,10 @@ c.document = false;
 c.init = function(){
 	// If we are in an iframe find it and resize it
 	if (window.parent !== window){
-		c.document = window.parent.document;
+		if(!c.document){
+			c.document = window.parent.document;
+			c.window = window.parent;
+		}
 		$(window.parent.document).find('iframe').each(function(i,e){
 			if (e.contentDocument === document){
 				$(e).css({
@@ -26,15 +29,11 @@ c.init = function(){
 			}
 		});
 	}
-	// If we are in a popup
-	else if (window.opener !== null){
-		c.document = window.opener.document;
-	}
 
 	// Find CSS files that we will be working with.
 	// CSS files will be limited by same-origin policy so make sure they are
 	// on the same domain.
-	c.files = c.getFiles();
+	if(c.files.length === 0) c.files = c.getFiles();
 	
 	// Get templates
 	$.getJSON(url + 'templates/interface.php?callback=?', function(data){
