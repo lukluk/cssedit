@@ -462,6 +462,65 @@ c.move = function(){
 
 }
 
+c.expandRelative = function(url, base){
+	if(typeof base === 'undefined'){
+		base = c.document.location.protocol + '//' + c.document.location.host + c.document.location.pathname;
+	}
+	// Make sure there is not a trailing slash on url
+	if (url.substr(-1) == '/')  url = url.substr(0,url.length-1);
+	// Base needs one though
+	if (base.substr(-1) != '/') base += '/';
+
+	// Split up the base url
+	var parts = base.match(/((?:http:\/\/)(?:www\.)|(?:http:\/\/)|(?:www\.)|())([\w\d.]+(\.[\w]+)*)(.*)/i);
+	base = {
+		'scheme':  parts[1]
+		,'host':   parts[3]
+		,'path':   parts[5]
+	};
+
+	// If it's already an absolute path
+	if (url.match('http://') !== null) return url;
+
+	// If the path is from root
+	if (url[0] == '/'){
+		//var absUrl = location.protocol + '//' + location.host + url;
+		return location.protocol + '//' + location.host + url;
+	}
+
+	var  path      = base.path.split('/')
+		,url_path  = url.split('/')
+		,end = url_path.pop();
+
+	path.pop();
+
+	for (i in url_path) {
+		segment = url_path[i];
+		if (segment == '.'){
+			// skip
+		}
+		else if (segment == '..' && path && path[path.length-1] != '..'){
+			path.pop();
+		}
+		else{
+			path.push(segment);
+		}
+	}
+
+	if (end == '.'){
+		path.push('');
+	}
+	else if (end == '..' && path && path[path.length-1] != '..'){
+		path[path.length-1] = '';
+	}
+	else{
+		path.push(end);
+	}
+
+	// Absolute path
+	return base.scheme + base.host  + path.join('/');
+}
+
 var ss = c.StyleSheet = function(url){
 
 	// url of stylesheet
@@ -491,8 +550,8 @@ var ss = c.StyleSheet = function(url){
 
 	// Setup everything
 	this.parse();
-	this.styleObject.html( this.render() );
-
+	this.update_element();
+	
 	// Remove link to original stylesheet
 	$('link[href="'+url+'"]',c.document).remove();
 
@@ -857,66 +916,24 @@ ss.fn.render = function(){
 }
 
 ss.fn.update_element = function(){
-	this.styleObject.html( this.render() );
+	var css   = this.render()	
+		,urls = css.match(/url\(['"]?[^"')]+['"]?\)/gi)
+		,url  = /url\((['"]?)([^"')]+)(['"]?)\)/
+		,base = c.expandRelative(this.url).match(/.*\//)[0];
+
+	// Expand urls to absolute path
+	for (i in urls){
+		var parts = urls[i].match(url)
+			,file = c.expandRelative(parts[2], base);
+		
+		css = css.replace(parts[0], 'url('+parts[1]+file+parts[3]+')');
+	}
+	
+	this.styleObject.html( css );
 }
 
 ss.fn.path = function(){
-	var url = this.url;
-	base = c.document.location.protocol + '//' + c.document.location.host + c.document.location.pathname;
-
-	// Make sure there is not a trailing slash on url
-	if (url.substr(-1) == '/')  url = url.substr(0,url.length-1);
-	// Base needs one though
-	if (base.substr(-1) != '/') base += '/';
-
-	// Split up the base url
-	var parts = base.match(/((?:http:\/\/)(?:www\.)|(?:http:\/\/)|(?:www\.)|())([\w\d.]+(\.[\w]+)*)(.*)/i);
-	base = {
-		'scheme':  parts[1]
-		,'host':   parts[3]
-		,'path':   parts[5]
-	};
-
-	// If it's already an absolute path
-	if (url.match('http://') !== null) return url;
-
-	// If the path is from root
-	if (url[0] == '/'){
-		//var absUrl = location.protocol + '//' + location.host + url;
-		return location.protocol + '//' + location.host + url;
-	}
-
-	var  path      = base.path.split('/')
-		,url_path  = url.split('/')
-		,end = url_path.pop();
-
-	path.pop();
-
-	for (i in url_path) {
-		segment = url_path[i];
-		if (segment == '.'){
-			// skip
-		}
-		else if (segment == '..' && path && path[path.length-1] != '..'){
-			path.pop();
-		}
-		else{
-			path.push(segment);
-		}
-	}
-
-	if (end == '.'){
-		path.push('');
-	}
-	else if (end == '..' && path && path[path.length-1] != '..'){
-		path[path.length-1] = '';
-	}
-	else{
-		path.push(end);
-	}
-
-	// Absolute path
-	return base.scheme + base.host  + path.join('/');
+	return c.expandRelative(this.url);
 }
 
 
