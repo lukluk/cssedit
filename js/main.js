@@ -631,6 +631,9 @@ ss.fn.parse = function(){
 		else if (in_dec === true && c === '/' && css[(i*1)+1] === '*'){
 			in_comment = true;
 			current += css[(i*1)+1];
+			if (in_value){
+				value += c + css[(i*1)+1];
+			}
 			i++;
 			continue;
 		}
@@ -648,7 +651,13 @@ ss.fn.parse = function(){
 				current += css[(i*1)+1];
 			}
 
-			comment = property = value = '';
+			if(!in_value){
+				comment = property = value = '';
+			}
+			else{
+				value += c + css[(i*1)+1];
+				comment = '';
+			}
 			i++;
 			continue;
 		}
@@ -667,6 +676,7 @@ ss.fn.parse = function(){
 			i++;
 			continue;
 		}
+		
 		if (in_comment){
 			comment += c;
 		}
@@ -713,7 +723,7 @@ ss.fn.parse = function(){
 					else{
 						skip = false;
 						place_holder += current;
-						comment = current = property = value = '';
+						current = property = value = '';
 						in_value = false;
 						in_property = true;
 					}
