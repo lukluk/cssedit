@@ -567,11 +567,13 @@ ss.fn.parse = function(){
 		,in_comment   = false
 		,in_property  = false
 		,in_value     = false
+		,skip         = false
 		,disabled     = false
 		,selector     = ''
 		,properties   = []
 		,property     = ''
 		,value        = ''
+		,comment      = ''
 		,place_holder = ''
 		,current = ''
 		,selector_index = 0
@@ -610,7 +612,7 @@ ss.fn.parse = function(){
 					,value: $.trim(value)
 					,prop_index: prop_index++
 					,value_index: value_index++
-					,disabled: disabled
+					,disabled: in_comment
 				});
 			}
 			obj.push({
@@ -620,51 +622,71 @@ ss.fn.parse = function(){
 				,properties: properties
 			});
 			place_holder += current;
-			in_comment = in_dec = in_property = in_value = false;
-			current = selector = property = value = '';
+			in_dec = in_property = in_value = false;
+			comment = current = selector = property = value = '';
 			properties = [];
 			continue;
 		}
 		// Look for the start of comments inside decs
 		else if (in_dec === true && c === '/' && css[(i*1)+1] === '*'){
-			current = current.substring(0,current.length-1);
-			disabled = true;
+			in_comment = true;
+			current += css[(i*1)+1];
 			i++;
 			continue;
 		}
 		// Look for the end of comments inside decs
 		else if (in_dec === true && c === '*' && css[(i*1)+1] === '/'){
-			current = current.substring(0,current.length-1);
-			disabled = false;
+			in_comment = false;
+			if(comment === ''){
+				// It was just a property commented out. Go back and remove
+				// opening comment tag
+				current = current.substring(0,current.length-1);
+				place_holder = place_holder.replace(/\/\*(.*?)$/,'$1');
+			}
+			else{
+				// It was an actual comment, not just a property commented out.
+				current += css[(i*1)+1];
+			}
+
+			comment = property = value = '';
 			i++;
 			continue;
 		}
 		// Look for the end of comments
-		else if (in_comment === true && c === '*' && css[(i*1)+1] === '/'){
+		else if (in_comment === true && in_dec === false && c === '*' && css[(i*1)+1] === '/'){
 			current += css[(i*1)+1];
-			place_holder += current.replace(value, '$property'+prop_index);
+			place_holder += current.replace(comment, '$property'+prop_index);
 			obj.push({
 				type: 'comment'
-				,text: value
+				,text: comment
 				,index: prop_index++
 			});
 			in_comment = in_dec = in_property = in_value = false;
-			current = selector = property = value = '';
+			comment = current = selector = property = value = '';
 			properties = [];
 			i++;
 			continue;
+		}
+		if (in_comment){
+			comment += c;
 		}
 
 		if (in_dec === false && in_comment === false){
 			selector += c;
 		}
-		else if (in_comment){
-			value += c;
-		}
 		else if (in_dec === true){
 			if (in_property === true){
 				if (c === ':'){
-					place_holder += current.replace($.trim(property), '$property'+prop_index);
+					// Verify that the property name is valid
+					property = $.trim(property);
+					var matches = property.match(/^[A-z-]+$/);
+					if (matches === null){
+						skip = true;
+						place_holder += current;
+					}
+					else{
+						place_holder += current.replace(property, '$property'+prop_index);
+					}
 					current = '';
 					in_property = false;
 					in_value = true;
@@ -675,17 +697,26 @@ ss.fn.parse = function(){
 			}
 			else if (in_value === true){
 				if (c === ';'){
-					place_holder += current.replace($.trim(value), '$value'+value_index);
-					properties.push({
-						name: $.trim(property)
-						,prop_index: prop_index++
-						,value_index: value_index++
-						,value: $.trim(value)
-						,disabled: disabled
-					});
-					current = property = value = '';
-					in_value = false;
-					in_property = true;
+					if(!skip){
+						place_holder += current.replace($.trim(value), '$value'+value_index);
+						properties.push({
+							name: $.trim(property)
+							,prop_index: prop_index++
+							,value_index: value_index++
+							,value: $.trim(value)
+							,disabled: in_comment
+						});
+						comment = current = property = value = '';
+						in_value = false;
+						in_property = true;
+					}
+					else{
+						skip = false;
+						place_holder += current;
+						comment = current = property = value = '';
+						in_value = false;
+						in_property = true;
+					}
 				}
 				else{
 					value += c;
@@ -871,7 +902,6 @@ ss.fn.update_template = function(){
 }
 
 ss.fn.render = function(){
-	//this.update_template();
 	var obj = this.styles;
 	var template = this.template;
 
