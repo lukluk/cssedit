@@ -8,20 +8,22 @@
 	<script type="text/javascript">
 	// This will eventually be a bookmarklet
 	window.onload = function(){
-		var body = document.body;
-		var iframe = document.createElement('iframe');
+		var url     = 'http://localhost/cssedit/'
+			,body   = document.body
+			,iframe = document.createElement('iframe');
+		
 		iframe.setAttribute('src',localStorage.getItem('cssedit_path') + '?empty');
 		iframe.onload = function(){
 			var head = iframe.contentDocument.head;
 			
-			var scripts = ['js/jquery-1.5.2.js','js/jquery-ui-1.8.11.custom.min.js','js/jquery.tmpl.js','js/main.js'];
-			var styles = ['css/master.css','css/theme/jquery-ui-1.8.11.custom.css'];
+			var scripts = ['js/jquery-1.5.2.js','js/jquery-ui-1.8.11.custom.min.js','js/jquery.tmpl.js','js/main.js']
+				,styles = ['css/master.css','css/theme/jquery-ui-1.8.11.custom.css'];
 			
 			for (i in styles){
 				var style = iframe.contentDocument.createElement('link');
 				style.setAttribute('type','text/css');
 				style.setAttribute('rel','stylesheet');
-				style.setAttribute('href','http://localhost/cssedit/'+styles[i]);
+				style.setAttribute('href',url+styles[i]);
 				head.appendChild(style);
 			};
 			
@@ -30,11 +32,11 @@
 				if(typeof scripts[x] === 'undefined'){
 					iframe.contentWindow.cssedit.init();
 					return false;
-				}
+				};
 				
 				var script = iframe.contentDocument.createElement('script');
 				script.setAttribute('type','text/javascript');
-				script.setAttribute('src','http://localhost/cssedit/'+scripts[x]);
+				script.setAttribute('src',url+scripts[x]);
 				x++;
 				script.onload = addScript;
 				head.appendChild(script);
