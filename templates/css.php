@@ -9,7 +9,6 @@ ob_start();
 	<div class="properties">
 		{{each(i,property) dec.properties}}
 		<div class="property">
-			<div class="handle"></div>
 			<input type="checkbox" {{if property.disabled === false}} checked="checked" {{/if}} /><div class="name" contenteditable="true">${property.name}</div><div class="value" contenteditable="true">${property.value}</div>
 		</div>
 		{{/each}}
