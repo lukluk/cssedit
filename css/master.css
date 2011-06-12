@@ -123,3 +123,27 @@ fieldset{
 #toggle_expand .ui-button-icon-primary, #save .ui-button-icon-primary{
 	left:2px;
 }
+
+#hints:empty{
+	display: none;
+}
+
+#hints{
+	background: rgba(0,0,0,.7);
+	box-shadow: 0 0 5px #000;
+	line-height:16px;
+	position:absolute;
+	list-style-type:none;
+	color:#eee;
+	padding:5px;
+	font-size:1.1em;
+}
+
+#hints li{
+	border-bottom: 1px solid #222;
+}
+
+#hints li.active{
+	color: #FFF;
+	font-weight: bold;
+}

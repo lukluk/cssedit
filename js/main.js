@@ -9,6 +9,8 @@ c.stylesheets = {};
 c.ss = false; // Quick access to current stylesheet
 c.document = false;
 c.driver = localStorage.getItem('cssedit_path');
+c.hints = {'properties': {}, 'keywords': {}};
+
 if (c.driver === null){
 	alert('You must vist the page of your driver');
 	return false;
@@ -365,6 +367,70 @@ c.init = function(){
 		if (window === window.parent){
 			c.move();
 		}
+	});
+	
+	// Property hinting
+	var hints, offset = 0;
+	$('.dec .property .name').live('keyup', function(e){
+		// Don't do anything if arrow down/up or tab
+		if ([40, 9, 38].indexOf(e.which) !== -1) return false;
+		
+		if(hints) hints.children().remove();
+		else{
+			hints = $('<ul />',{'id':'hints'}).appendTo('#stylesheet');
+		}
+		
+		if(String.fromCharCode(e.which).match(/[A-z-]/)){
+			var val = $(e.target).text()
+				,matches = [];
+				
+			for(i in c.hints.properties){
+				var result = i.match(new RegExp('^'+val));
+				if ( result !== null && result){
+					matches.push(i);
+				}
+			}
+			
+			$.each(matches, function(i, e){ $('<li />').text(e).appendTo(hints); });
+			hints.children().eq(0).addClass('active');
+
+			var pos = $(e.target).offset();
+			hints.css({left: pos.left, top: pos.top + $(this).height()});
+			offset = 0;
+		}
+		
+		return true;
+	});
+	
+	$('.dec .property .name').live('keydown', function(e){
+		// Arrow down
+		if (e.which === 40 && hints){
+			e.preventDefault();
+			hints.children().eq(offset).removeClass('active');
+			
+			offset++;
+			if (offset >= hints.children().length) offset = 0;
+			
+			$(hints).children().eq(offset).addClass('active');
+		}
+		// Arrow up
+		else if (e.which === 38 && hints){
+			e.preventDefault();
+			hints.children().eq(offset).removeClass('active');
+			
+			offset--;
+			if (offset < 0) offset = hints.children().length-1;
+			
+			$(hints).children().eq(offset).addClass('active');
+		}
+		// Tab or enter
+		else if ((e.which === 9 || e.which === 13) && hints){
+			$(this).text(hints.children().eq(offset).text());
+		}
+	});
+	
+	$('.dec .property .name').live('focusout', function(){
+		hints.children().remove();
 	})
 }
 
