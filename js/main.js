@@ -2,6 +2,7 @@
 
 var c = {};
 var url = 'http://localhost/cssedit/';
+var hints;
 c.indexes = {};
 c.container = $('body'); // Container we are rendering to
 c.files = []; // All known CSS files
@@ -161,13 +162,15 @@ c.init = function(){
 	});
 
 	// Prevent new lines
-	$('.selector, .value, .property','.dec').live('keypress', function(e){
-		return e.which != 13;
+	$('.selector, .value, .property, .name','.dec').live('keydown keyup', function(e){
+		if(e.which === 13){
+			e.preventDefault();
+		}
 	});
 
 	$('.dec .selector').live('keyup', function(e){
 		// Pressing enter on a selector for a dec with no properties adds
-		// a property
+		// a property if were not accepting a code hint
 		if (e.which === 13){
 			var next = $(e.target).parent().find('.properties .property:eq(0)');
 			if (next.length > 0){
@@ -193,18 +196,21 @@ c.init = function(){
 	});
 
 	// Value/name navigation
-	$('.dec .name,.dec .value').live('keyup',function(e){
+	$('.dec .name,.dec .value').live('keyup update',function(e){
 		if(e.which === 13){
+			e.preventDefault();
 			var type = $(e.target).attr('class')
 				,next = (type == 'property' ? $(e.target).next().next() : $(e.target).next());
 
 			// Add a new property/value set
-			if(next.length == 0){
-				$(e.target).trigger('add_property');
-			}
-			// Go to the next property
-			else{
-				next.focus();
+			if ($(this).is('.name') || (!hints || hints.is(':empty'))){
+				if(next.length == 0){
+					$(e.target).trigger('add_property');
+				}
+				// Go to the next property
+				else{
+					next.focus();
+				}
 			}
 		}
 		else{
@@ -363,6 +369,7 @@ c.init = function(){
 			c.move();
 		}
 	});
+	
 	$(window).bind('unload', function(e){
 		if (window === window.parent){
 			c.move();
@@ -370,7 +377,6 @@ c.init = function(){
 	});
 	
 	// Property hinting
-	var hints, offset = 0;
 	$('.dec .property .name').live('keyup', function(e){
 		// Don't do anything if arrow down/up or tab
 		if ([40, 9, 38].indexOf(e.which) !== -1) return false;
@@ -396,41 +402,114 @@ c.init = function(){
 
 			var pos = $(e.target).offset();
 			hints.css({left: pos.left, top: pos.top + $(this).height()});
-			offset = 0;
+			hints.offset = 0;
 		}
 		
 		return true;
 	});
 	
-	$('.dec .property .name').live('keydown', function(e){
+	// Value hints
+	$('.dec .property .value').live('keyup', function(e){
+		// Don't do anything if arrow down/up or tab
+		if ([40, 9, 38, 13].indexOf(e.which) !== -1) return false;
+		
+		if(hints) hints.children().remove();
+		else{
+			hints = $('<ul />',{'id':'hints'}).appendTo('#stylesheet');
+		}
+		
+		if(String.fromCharCode(e.which).match(/[A-z-]/)){
+			var offset = window.getSelection().getRangeAt(0).startOffset
+				,text = $(e.target).text().match(new RegExp('(.{0,'+ (offset-1) +'}(?:\\s|^))([^\\s]+)'))
+				,property = c.hints.properties[ $(e.target).prev().text() ]
+				,matches = [];
+
+			if(text === null) return false;
+			else var val = text[2];
+			
+			for (i in property){
+				var values = c.hints.keywords[property[i]];
+				for (x in values){
+					var result = values[x].match(new RegExp('^'+val));
+					if ( result !== null && result){
+						matches.push(values[x]);
+					}
+				}
+			}
+
+			$.each(matches, function(i, e){ $('<li />').text(e).appendTo(hints); });
+			hints.children().eq(0).addClass('active');
+
+			var pos = $(e.target).offset();
+			hints.css({left: pos.left + ($(this).width()/$(this).text().length)*text[1].length, top: pos.top + $(this).height()});
+			hints.offset = 0;
+		}
+		
+		return true;
+	});
+
+	// Code hint list interactions
+	var prevPos = 1;
+	$('.name, .value', '.dec .property ').live('keydown', function(e){
+		
 		// Arrow down
 		if (e.which === 40 && hints){
 			e.preventDefault();
-			hints.children().eq(offset).removeClass('active');
+			hints.children().eq(hints.offset).removeClass('active');
 			
-			offset++;
-			if (offset >= hints.children().length) offset = 0;
+			hints.offset++;
+			if (hints.offset >= hints.children().length) hints.offset = 0;
 			
-			$(hints).children().eq(offset).addClass('active');
+			$(hints).children().eq(hints.offset).addClass('active');
 		}
 		// Arrow up
 		else if (e.which === 38 && hints){
 			e.preventDefault();
-			hints.children().eq(offset).removeClass('active');
+			hints.children().eq(hints.offset).removeClass('active');
 			
-			offset--;
-			if (offset < 0) offset = hints.children().length-1;
+			hints.offset--;
+			if (hints.offset < 0) hints.offset = hints.children().length-1;
 			
-			$(hints).children().eq(offset).addClass('active');
+			$(hints).children().eq(hints.offset).addClass('active');
 		}
 		// Tab or enter
-		else if ((e.which === 9 || e.which === 13) && hints){
-			$(this).text(hints.children().eq(offset).text());
+		else if (e.shiftKey === false && (e.which === 9 || e.which === 13) && hints && hints.not(':empty').length){
+			if($(this).is('.name') && hints.not(':empty').length){
+				$(this).text(hints.children().eq(hints.offset).text());
+			}
+			else{
+				//e.preventDefault();
+				var value = hints.children().eq(hints.offset).text()
+					,pos = (prevPos > 0 ? prevPos-1 : 0)
+					,text = $(this).text()
+					,val = text.replace(new RegExp('(.{0,'+pos+'})(\\s|^)([^\\s]+)'), '$1$2'+value)
+					,property = c.hints.properties[ $(e.target).prev().text() ]
+					,matches = [];
+
+				$(this).text(val);
+
+				// Put cursor after the text we just added
+				var range = document.createRange();
+				var point = val.match(new RegExp('(.{0,'+pos+'})(\\s|^)([^\\s]+)'));
+				range.setStart(this.firstChild,point[0].length);
+				range.setEnd(this.firstChild,point[0].length);
+
+				var sel = window.getSelection();
+				sel.removeAllRanges();
+				sel.addRange(range);
+
+			}
+			
+			$(this).trigger('update');
+		}
+		else{
+			prevPos = window.getSelection().getRangeAt(0).startOffset;
 		}
 	});
 	
-	$('.dec .property .name').live('focusout', function(){
-		hints.children().remove();
+	// Hide hint list on blur
+	$('.name, .value', '.dec .property ').live('focusout', function(){
+		if(hints) hints.children().remove();
 	})
 }
 
