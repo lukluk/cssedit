@@ -377,7 +377,7 @@ c.init = function(){
 	});
 	
 	// Property hinting
-	$('.dec .property .name').live('keyup', function(e){
+	$('.dec .property .name').live('keyup show_hints', function(e){
 		// Don't do anything if arrow down/up or tab
 		if ([40, 9, 38].indexOf(e.which) !== -1) return false;
 		
@@ -386,7 +386,7 @@ c.init = function(){
 			hints = $('<ul />',{'id':'hints'}).appendTo('#stylesheet');
 		}
 		
-		if(String.fromCharCode(e.which).match(/[A-z-]/)){
+		if(String.fromCharCode(e.which).match(/[A-z-]/) || e.type === 'show_hints' || (e.which === 32 && e.metaKey === true) || e.which === 17){
 			var val = $(e.target).text()
 				,matches = [];
 				
@@ -406,10 +406,17 @@ c.init = function(){
 		}
 		
 		return true;
+	})
+	// CTRL+Space brings up all code hints in values
+	.live('keydown', function(e){
+		if (e.which === 32 && e.metaKey === true){
+			e.preventDefault();
+			$(this).trigger('show_hints');
+		}
 	});
 	
 	// Value hints
-	$('.dec .property .value').live('keyup', function(e){
+	$('.dec .property .value').live('keyup show_hints', function(e){
 		// Don't do anything if arrow down/up or tab
 		if ([40, 9, 38, 13].indexOf(e.which) !== -1) return false;
 		
@@ -418,15 +425,14 @@ c.init = function(){
 			hints = $('<ul />',{'id':'hints'}).appendTo('#stylesheet');
 		}
 		
-		if(String.fromCharCode(e.which).match(/[A-z-]/)){
-			var offset = window.getSelection().getRangeAt(0).startOffset
-				,text = $(e.target).text().match(new RegExp('(.{0,'+ (offset-1) +'}(?:\\s|^))([^\\s]+)'))
+		if(String.fromCharCode(e.which).match(/[A-z-]/) || e.type === 'show_hints' || (e.which === 32 && e.metaKey === true) || e.which === 17){
+			var pos = window.getSelection().getRangeAt(0).startOffset
+				,offset = (pos > 0 ? pos-1 : pos)
+				,text = $(e.target).text().match(new RegExp('(.{0,'+offset+'}(?:\\s|^))([^\\s]*)'))
 				,property = c.hints.properties[ $(e.target).prev().text() ]
-				,matches = [];
+				,matches = []
+				,val = text[2];
 
-			if(text === null) return false;
-			else var val = text[2];
-			
 			for (i in property){
 				var values = c.hints.keywords[property[i]];
 				for (x in values){
@@ -446,6 +452,13 @@ c.init = function(){
 		}
 		
 		return true;
+	})
+	// CTRL+Space brings up all code hints in values
+	.live('keydown', function(e){
+		if (e.which === 32 && e.metaKey === true){
+			e.preventDefault();
+			$(this).trigger('show_hints');
+		}
 	});
 
 	// Code hint list interactions
@@ -482,7 +495,7 @@ c.init = function(){
 				var value = hints.children().eq(hints.offset).text()
 					,pos = (prevPos > 0 ? prevPos-1 : 0)
 					,text = $(this).text()
-					,val = text.replace(new RegExp('(.{0,'+pos+'})(\\s|^)([^\\s]+)'), '$1$2'+value)
+					,val = text.replace(new RegExp('(.{0,'+pos+'})(\\s|^)([^\\s]*)'), '$1$2'+value)
 					,property = c.hints.properties[ $(e.target).prev().text() ]
 					,matches = [];
 
@@ -490,7 +503,7 @@ c.init = function(){
 
 				// Put cursor after the text we just added
 				var range = document.createRange();
-				var point = val.match(new RegExp('(.{0,'+pos+'})(\\s|^)([^\\s]+)'));
+				var point = val.match(new RegExp('(.{0,'+pos+'})(\\s|^)([^\\s]*)'));
 				range.setStart(this.firstChild,point[0].length);
 				range.setEnd(this.firstChild,point[0].length);
 
