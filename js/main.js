@@ -334,7 +334,7 @@ c.init = function(){
 			,regex = new RegExp('(.{0,'+offset+'})(\\s|^)(-{0,1}[\\d]+)([\\w]*)(\\s|$)')
 			,unit = target.text().match(regex);
 
-		if(unit !== null && unit[3].length > 0){
+		if(unit !== null && unit[3].length > 0 && (!hints || hints.is(':empty')) ){
 			var i = parseInt(unit[3]);
 			var number;
 			if (e.shiftKey === false) number = 1;
