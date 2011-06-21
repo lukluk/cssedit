@@ -369,34 +369,34 @@ c.init = function(){
 			c.move();
 		}
 	});
-	
+
 	$(window).bind('unload', function(e){
 		if (window === window.parent){
 			c.move();
 		}
 	});
-	
+
 	// Property hinting
 	$('.dec .property .name').live('keyup show_hints', function(e){
 		// Don't do anything if arrow down/up or tab
 		if ([40, 9, 38].indexOf(e.which) !== -1) return false;
-		
+
 		if(hints) hints.children().remove();
 		else{
 			hints = $('<ul />',{'id':'hints'}).appendTo('#stylesheet');
 		}
-		
+
 		if(String.fromCharCode(e.which).match(/[A-z-]/) || e.type === 'show_hints' || (e.which === 32 && e.metaKey === true) || e.which === 17){
 			var val = $(e.target).text()
 				,matches = [];
-				
+
 			for(i in c.hints.properties){
 				var result = i.match(new RegExp('^'+val));
 				if ( result !== null && result){
 					matches.push(i);
 				}
 			}
-			
+
 			$.each(matches, function(i, e){ $('<li />').text(e).appendTo(hints); });
 			hints.children().eq(0).addClass('active');
 
@@ -404,7 +404,7 @@ c.init = function(){
 			hints.css({left: pos.left, top: pos.top + $(this).height()});
 			hints.offset = 0;
 		}
-		
+
 		return true;
 	})
 	// CTRL+Space brings up all code hints in values
@@ -414,17 +414,17 @@ c.init = function(){
 			$(this).trigger('show_hints');
 		}
 	});
-	
+
 	// Value hints
 	$('.dec .property .value').live('keyup show_hints', function(e){
 		// Don't do anything if arrow down/up or tab
 		if ([40, 9, 38, 13].indexOf(e.which) !== -1) return false;
-		
+
 		if(hints) hints.children().remove();
 		else{
 			hints = $('<ul />',{'id':'hints'}).appendTo('#stylesheet');
 		}
-		
+
 		if(String.fromCharCode(e.which).match(/[A-z-]/) || e.type === 'show_hints' || (e.which === 32 && e.metaKey === true) || e.which === 17){
 			var pos = window.getSelection().getRangeAt(0).startOffset
 				,offset = (pos > 0 ? pos-1 : pos)
@@ -450,7 +450,7 @@ c.init = function(){
 			hints.css({left: pos.left + ($(this).width()/$(this).text().length)*text[1].length, top: pos.top + $(this).height()});
 			hints.offset = 0;
 		}
-		
+
 		return true;
 	})
 	// CTRL+Space brings up all code hints in values
@@ -464,25 +464,25 @@ c.init = function(){
 	// Code hint list interactions
 	var prevPos = 1;
 	$('.name, .value', '.dec .property ').live('keydown', function(e){
-		
+
 		// Arrow down
 		if (e.which === 40 && hints){
 			e.preventDefault();
 			hints.children().eq(hints.offset).removeClass('active');
-			
+
 			hints.offset++;
 			if (hints.offset >= hints.children().length) hints.offset = 0;
-			
+
 			$(hints).children().eq(hints.offset).addClass('active');
 		}
 		// Arrow up
 		else if (e.which === 38 && hints){
 			e.preventDefault();
 			hints.children().eq(hints.offset).removeClass('active');
-			
+
 			hints.offset--;
 			if (hints.offset < 0) hints.offset = hints.children().length-1;
-			
+
 			$(hints).children().eq(hints.offset).addClass('active');
 		}
 		// Tab or enter
@@ -512,14 +512,14 @@ c.init = function(){
 				sel.addRange(range);
 
 			}
-			
+
 			$(this).trigger('update');
 		}
 		else{
 			prevPos = window.getSelection().getRangeAt(0).startOffset;
 		}
 	});
-	
+
 	// Hide hint list on blur
 	$('.name, .value', '.dec .property ').live('focusout', function(){
 		if(hints) hints.children().remove();
@@ -586,6 +586,7 @@ c.move = function(){
 				var inter2 = setInterval(function(){
 					if (typeof page.cssedit !== 'undefined'){
 						page.cssedit.files = c.files;
+						page.cssedit.hints = c.hints;
 						page.cssedit.stylesheets = c.stylesheets;
 						page.cssedit.document = c.document;
 						page.cssedit.window = c.window;
@@ -709,7 +710,7 @@ var ss = c.StyleSheet = function(url){
 	// Setup everything
 	this.parse();
 	this.update_element();
-	
+
 	// Remove link to original stylesheet
 	$('link[href="'+url+'"]',c.document).remove();
 
@@ -834,7 +835,7 @@ ss.fn.parse = function(){
 			i++;
 			continue;
 		}
-		
+
 		if (in_comment){
 			comment += c;
 		}
@@ -1114,7 +1115,7 @@ ss.fn.render = function(){
 }
 
 ss.fn.update_element = function(){
-	var css   = this.render()	
+	var css   = this.render()
 		,urls = css.match(/url\(['"]?[^"')]+['"]?\)/gi)
 		,url  = /url\((['"]?)([^"')]+)(['"]?)\)/
 		,base = c.expandRelative(this.url).match(/.*\//)[0];
@@ -1123,10 +1124,10 @@ ss.fn.update_element = function(){
 	for (i in urls){
 		var parts = urls[i].match(url)
 			,file = c.expandRelative(parts[2], base);
-		
+
 		css = css.replace(parts[0], 'url('+parts[1]+file+parts[3]+')');
 	}
-	
+
 	this.styleObject.html( css );
 }
 
