@@ -379,7 +379,7 @@ c.init = function(){
 	// Property hinting
 	$('.dec .property .name').live('keyup show_hints', function(e){
 		// Don't do anything if arrow down/up or tab
-		if ([40, 9, 38].indexOf(e.which) !== -1) return false;
+		if ([40, 9, 38, 16].indexOf(e.which) !== -1) return false;
 
 		if(hints) hints.children().remove();
 		else{
@@ -391,7 +391,7 @@ c.init = function(){
 				,matches = [];
 
 			for(i in c.hints.properties){
-				var result = i.match(new RegExp('^'+val));
+				var result = i.match(new RegExp('^'+val,'i'));
 				if ( result !== null && result){
 					matches.push(i);
 				}
@@ -418,7 +418,7 @@ c.init = function(){
 	// Value hints
 	$('.dec .property .value').live('keyup show_hints', function(e){
 		// Don't do anything if arrow down/up or tab
-		if ([40, 9, 38, 13].indexOf(e.which) !== -1) return false;
+		if ([40, 9, 38, 13, 16].indexOf(e.which) !== -1) return false;
 
 		if(hints) hints.children().remove();
 		else{
@@ -436,7 +436,7 @@ c.init = function(){
 			for (i in property){
 				var values = c.hints.keywords[property[i]];
 				for (x in values){
-					var result = values[x].match(new RegExp('^'+val));
+					var result = values[x].match(new RegExp('^'+val,'i'));
 					if ( result !== null && result){
 						matches.push(values[x]);
 					}
