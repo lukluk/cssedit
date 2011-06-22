@@ -225,7 +225,13 @@ c.init = function(){
 	// Auto remove empty properties
 	$('.dec .property').live('focusout',function(e){
 		if($(e.target).closest('.property').text() === ''){
+			var prop = $(e.target).closest('.property').index()
+				,dec = $(e.target).closest('.dec').index('.dec,.comment');
+
 			$(e.target).parent().remove();
+			c.ss.styles[dec].properties[prop].deleted = true;
+			c.ss.update_template();
+			c.ss.update_element();
 		}
 	});
 
