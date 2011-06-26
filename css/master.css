@@ -57,10 +57,6 @@ fieldset{
     color:#158BF2;
 }
 
-.dec .property{
-    margin-left:10px;
-}
-
 .dec:after{
     content: "}";
     color:#424242;
@@ -105,7 +101,7 @@ fieldset{
 	display:none;
 }
 
-#toggle_expand, #save{
+#toggle_expand, #save, #sort{
 	position:fixed;
 	height:20px;
 	width:20px;
@@ -120,7 +116,12 @@ fieldset{
 	right:36px;
 }
 
-#toggle_expand .ui-button-icon-primary, #save .ui-button-icon-primary{
+#sort{
+	right:64px;
+	cursor: pointer !important;
+}
+
+#toggle_expand .ui-button-icon-primary, #save .ui-button-icon-primary, #sort .ui-button-icon-primary{
 	left:2px;
 }
 
@@ -146,4 +147,14 @@ fieldset{
 #hints li.active{
 	color: #FFF;
 	font-weight: bold;
+}
+
+.property .handle{
+	display: inline-block;
+	width: 16px;
+	height: 16px;
+	margin-right: 4px;
+	background: transparent url(theme/images/ui-icons_888888_256x240.png) -16px -224px no-repeat;
+	cursor: n-resize;
+	vertical-align: bottom;
 }

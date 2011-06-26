@@ -56,10 +56,39 @@ c.init = function(){
 			c.ss.save();
 		});
 
+		$('#sort').button({
+			icons: { primary: 'ui-icon ui-icon-arrowthick-2-n-s' }
+		})
+		.click(function(e){
+			$('#stylesheet').sortable({disabled: $(this).hasClass('ui-state-disabled')});
+			$(this).toggleClass('ui-state-disabled');
+		});
+
 		// Events for dropdown menu to change stylesheets
 		$('#cssedit_file').change(function(e){
 			var url = c.files[ $(e.target).val() ];
 			c.display(url);
+		});
+
+		// Decleration sorting
+		var sort_start;
+		$('#stylesheet').sortable({
+			axis: 'y'
+			,containment: 'parent'
+			,disabled: true
+			,items: '.dec, .comment'
+			,distance: 10
+			,update: function(e, ui){
+				// Remove .grabber elements because they will end up out of place
+				$('#stylesheet .grabber').remove();
+
+				// Add .grabber elements
+				$('<div />',{'class':'grabber'}).insertBefore('.dec,.comment');
+				$('<div />',{'class':'grabber'}).appendTo('#stylesheet');
+			}
+			,start: function(e, ui){
+				sort_start = ui.item.index('.dec, .comment');
+			}
 		});
 
 		$.getJSON(url + 'templates/css.php?callback=?', function(data){
@@ -549,7 +578,22 @@ c.display = function(url){
 	}
 
 	// Generate css display if there were no errors
-	$('#stylesheet').html( $.tmpl('css', {decs: c.stylesheets[url].styles}) );
+	$('#stylesheet').html( $.tmpl('css', {decs: c.stylesheets[url].styles}) ).sortable('refresh');
+
+	var sort_start;
+	// Value sorting
+	$('.properties').sortable({
+		axis: 'y'
+		,containment: 'parent'
+		,handle: '.handle'
+		,update: function(e, ui){
+
+		}
+		,start: function(e, ui){
+			sort_start = ui.item.index();
+		}
+	});
+
 
 	c.ss = c.stylesheets[url];
 }

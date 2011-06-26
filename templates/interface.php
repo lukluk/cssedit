@@ -11,11 +11,12 @@ ob_start();
 			</select>
 		</fieldset>
 	</form>
+	<a id="sort"></a>
 	<a id="save"></a>
 	<a id="toggle_expand"></a>
 </div>
 <div id="stylesheet" contenteditable="false">
-	
+
 </div>
 <?php
 $text = ob_get_clean();
