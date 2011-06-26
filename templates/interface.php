@@ -11,9 +11,9 @@ ob_start();
 			</select>
 		</fieldset>
 	</form>
-	<a id="sort"></a>
-	<a id="save"></a>
-	<a id="toggle_expand"></a>
+	<a id="sort" title="Enable Sorting"></a>
+	<a id="save" title="Save"></a>
+	<a id="toggle_expand" title="Expand View"></a>
 </div>
 <div id="stylesheet" contenteditable="false">
 
