@@ -1200,42 +1200,71 @@ ss.fn.move_dec = function(from, to){
 	var template  = this.template
 		,item     = this.styles[from];
 
-	var dec = template.match(
-		new RegExp(''
+	if (item.type === 'dec'){
+		var search = template.match(
+			new RegExp(''
+				+ '('
+					+ '\\$selector'+item.selector_index
+					+ '\\s*'
+					+ '{'
+					+ '[^}]+'
+					+ '}'
+					+ '\\s*'
+				+ ')'
+			)
+		);
+		
+	}
+	else if (item.type === 'comment'){
+		var search = template.match(
+			new RegExp(''
+				+ '('
+					+ '\\/\\*'
+					+ '[^*]+'
+					+ '\\*\\/'
+					+ '\\s*'
+				+ ')'
+			)
+		);
+
+
+	}
+	
+	// If we couldn't find the item exit now
+	if (!search) return false;
+	
+	template = template.replace(search[0], '');
+
+	if (this.styles[to].type === 'dec'){
+		var match_to = new RegExp(''
 			+ '('
-				+ '\\$selector'+item.selector_index
+				+ '\\$selector'+ this.styles[to].selector_index
 				+ '\\s*'
 				+ '{'
 				+ '[^}]+'
 				+ '}'
 				+ '\\s*'
 			+ ')'
-		)
-	);
-	
-	// If we couldn't find the dec exit now
-	if (!dec) return false;
-	
-	template = template.replace(dec[0], '');
-	
-	var match_to = new RegExp(''
-		+ '('
-			+ '\\$selector'+ this.styles[to].selector_index
-			+ '\\s*'
-			+ '{'
-			+ '[^}]+'
-			+ '}'
-			+ '\\s*'
-		+ ')'
-	);
+		);
+	}
+	else if (this.styles[to].type === 'comment'){
+		var match_to = new RegExp(''
+			+ '('
+				+ '\\/\\*'
+				+ '\\$property'+this.styles[to].index
+				+ '\\*\\/'
+				+ '\\s*'
+			+ ')'
+		);
+	}
 	
 	// If moving down insert after to
 	if (from < to){
-		template = template.replace(match_to, '$1' + dec[0]);
+		template = template.replace(match_to, '$1' + search[0]);
 	}
 	// Else insert before to
 	else{
-		template = template.replace(match_to, dec[0] + '$1');
+		template = template.replace(match_to, search[0] + '$1');
 	}
 	
 	this.styles.splice(
