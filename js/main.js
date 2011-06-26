@@ -60,7 +60,7 @@ c.init = function(){
 			icons: { primary: 'ui-icon ui-icon-arrowthick-2-n-s' }
 		})
 		.click(function(e){
-			$('#stylesheet').sortable({disabled: $(this).hasClass('ui-state-disabled')});
+			$('#stylesheet').sortable({disabled: $(this).hasClass('ui-state-disabled')}).toggleClass('ui-sortable-enabled');
 			$(this).toggleClass('ui-state-disabled');
 		});
 
