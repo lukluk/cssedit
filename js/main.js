@@ -1197,12 +1197,59 @@ ss.fn.save = function(){
 }
 
 ss.fn.move_dec = function(from, to){
-	console.log('move dec', from, to);
+	var template  = this.template
+		,item     = this.styles[from];
+
+	var dec = template.match(
+		new RegExp(''
+			+ '('
+				+ '\\$selector'+item.selector_index
+				+ '\\s*'
+				+ '{'
+				+ '[^}]+'
+				+ '}'
+				+ '\\s*'
+			+ ')'
+		)
+	);
+	
+	// If we couldn't find the dec exit now
+	if (!dec) return false;
+	
+	template = template.replace(dec[0], '');
+	
+	var match_to = new RegExp(''
+		+ '('
+			+ '\\$selector'+ this.styles[to].selector_index
+			+ '\\s*'
+			+ '{'
+			+ '[^}]+'
+			+ '}'
+			+ '\\s*'
+		+ ')'
+	);
+	
+	// If moving down insert after to
+	if (from < to){
+		template = template.replace(match_to, '$1' + dec[0]);
+	}
+	// Else insert before to
+	else{
+		template = template.replace(match_to, dec[0] + '$1');
+	}
+	
+	this.styles.splice(
+		to
+		,0
+		,this.styles.splice(from,1)[0]
+	);
+	
+	this.template = template;
+	return true;
 }
 
 ss.fn.move_property = function(dec, from, to){
 	// If moving up we want to insert one before our target
-	//if (from > to) to -= 1;
 
 	var template  = this.template
 		,item     = this.styles[dec].properties;
@@ -1263,7 +1310,6 @@ ss.fn.move_property = function(dec, from, to){
 	);
 	
 	this.template = template;
-	
 	return true;
 }
 
