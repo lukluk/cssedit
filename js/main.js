@@ -85,6 +85,9 @@ c.init = function(){
 				// Add .grabber elements
 				$('<div />',{'class':'grabber'}).insertBefore('.dec,.comment');
 				$('<div />',{'class':'grabber'}).appendTo('#stylesheet');
+
+				//c.ss.styles[sort_start].move(ui.item.index('.dec, .comment'));
+				c.ss.move_dec(sort_start, ui.item.index('.dec, .comment'));
 			}
 			,start: function(e, ui){
 				sort_start = ui.item.index('.dec, .comment');
@@ -584,10 +587,11 @@ c.display = function(url){
 	// Value sorting
 	$('.properties').sortable({
 		axis: 'y'
-		,containment: 'parent'
+		,containment: '.dec'
 		,handle: '.handle'
 		,update: function(e, ui){
-
+			var dec = $(this).closest('.dec').index('.dec,.comment');
+			c.ss.move_property(dec, sort_start, ui.item.index());
 		}
 		,start: function(e, ui){
 			sort_start = ui.item.index();
@@ -1190,6 +1194,77 @@ ss.fn.save = function(){
 	$.post(c.driver, {file: this.path(), css: this.render()}, function(){
 
 	});
+}
+
+ss.fn.move_dec = function(from, to){
+	console.log('move dec', from, to);
+}
+
+ss.fn.move_property = function(dec, from, to){
+	// If moving up we want to insert one before our target
+	//if (from > to) to -= 1;
+
+	var template  = this.template
+		,item     = this.styles[dec].properties;
+	
+	// Get the text from for the property
+	var property = template.match(
+		new RegExp(''
+			+ '('
+				+ '\\s*\\$property'+item[from].prop_index
+				+ '\\s*:\\s*'
+				+ '\\$value'+item[from].value_index
+				+ '\\s*;?'
+			+')'
+			+ '('
+				+ '\\s*'
+				+ '\\/\\*'
+				+ '[^*]+'
+				+ '\\*\\/'
+			+ ')?'
+		)
+	);
+	
+	// If we couldn't find the property exit now
+	if (!property) return false;
+	
+	template = template.replace(property[0], '');
+	
+	// Find where to is
+	var match_to = new RegExp(''
+		+ '('
+			+ '\\s*\\$property'+item[to].prop_index
+			+ '\\s*:\\s*'
+			+ '\\$value'+item[to].value_index
+			+ '\\s*;?'
+		+')'
+		+ '('
+			+ '\\s*'
+			+ '\\/\\*'
+			+ '[^*]+'
+			+ '\\*\\/'
+		+ ')?'
+	);
+	
+	// If moving down insert after to
+	if (from < to){
+		template = template.replace(match_to, '$1$2' + property[0]);
+	}
+	// Else insert before to
+	else{
+		template = template.replace(match_to, property[0] + '$1$2');
+	}
+	
+	// Update object
+	this.styles[dec].properties.splice(
+		to
+		,0
+		,this.styles[dec].properties.splice(from,1)[0]
+	);
+	
+	this.template = template;
+	
+	return true;
 }
 
 if (typeof window.cssedit == 'undefined'){
