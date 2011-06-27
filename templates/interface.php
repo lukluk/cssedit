@@ -15,6 +15,7 @@ ob_start();
 	<a id="save" title="Save"></a>
 	<a id="toggle_expand" title="Expand View"></a>
 </div>
+<div id="color_wrap"><div id="color"></div></div>
 <div id="stylesheet" contenteditable="false">
 
 </div>

@@ -3,6 +3,7 @@
 var c = {};
 var url = 'http://localhost/cssedit/';
 var hints;
+var match_colors;
 c.indexes = {};
 c.container = $('body'); // Container we are rendering to
 c.files = []; // All known CSS files
@@ -37,6 +38,8 @@ c.init = function(){
 			}
 		});
 	}
+	// Build regex to match all known colors
+	match_colors = new RegExp('(#[A-z0-9]{3}\\b|#[A-z0-9]{6}\\b|#[A-z0-9]{8}\\b|rgba\\([0-9]{1,3},[0-9]{1,3},[0-9]{1,3},[0-9]{1,3}\\)|rgb\\([0-9]{1,3},[0-9]{1,3},[0-9]{1,3}\\)' + '|' + c.hints.keywords.color.join('|') + ')', 'i');
 
 	// Find CSS files that we will be working with.
 	// CSS files will be limited by same-origin policy so make sure they are
@@ -529,7 +532,6 @@ c.init = function(){
 				$(this).text(hints.children().eq(hints.offset).text());
 			}
 			else{
-				//e.preventDefault();
 				var value = hints.children().eq(hints.offset).text()
 					,pos = (prevPos > 0 ? prevPos-1 : 0)
 					,text = $(this).text()
@@ -561,7 +563,40 @@ c.init = function(){
 	// Hide hint list on blur
 	$('.name, .value', '.dec .property ').live('focusout', function(){
 		if(hints) hints.children().remove();
+	});
+	
+	// Color picker
+	$('.value').live('keyup mousemove', function(e){
+		if (e.type === 'keyup'){
+			var offset = window.getSelection().getRangeAt(0).startOffset
+				,box   = $(this).offset()
+				,left  = box.left + ($(this).width() /$(this).text().length) * offset
+				,top   = box.top;
+		}
+		else{
+			var offset = parseInt((e.clientX - $(this).offset().left) / ($(this).width() /$(this).text().length))
+				,left  = e.clientX
+				,top  = e.clientY + $('body').scrollTop();
+		}
+		
+		var match_word = new RegExp('(.{0,'+offset+'})(\\s|^)(.+?)(\\s|$)')
+			,colors = $(this).text().match(match_word)
+			,color = colors[3].match(match_colors);
+		
+		
+		var color_box = $('#color_wrap');
+		if (color){
+			color_box.show();
+			color_box.css({left: left + 20, top: top - 70});
+			$('#color').css('background-color', color[0]);
+		}
+		else{
+			color_box.hide();
+		}
 	})
+	.live('mouseleave', function(e){
+		$('#color_wrap').hide();
+	});
 }
 
 c.getFiles = function(){
