@@ -622,7 +622,6 @@ c.display = function(url){
 	// Value sorting
 	$('.properties').sortable({
 		axis: 'y'
-		,containment: '.dec'
 		,handle: '.handle'
 		,update: function(e, ui){
 			var dec = $(this).closest('.dec').index('.dec,.comment');
