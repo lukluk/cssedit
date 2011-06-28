@@ -97,6 +97,19 @@ c.init = function(){
 			}
 		});
 
+		$('#color_picker').ColorPicker({
+			flat: true
+			,onChange: function(hsb,hex,rgb){
+				if (c.active_value){
+					c.active_value.trigger('update_color', arguments);
+				}
+			}
+		})
+		.hide()
+		.bind('mouseleave', function(e){
+			$(this).hide();
+		});;
+
 		$.getJSON(url + 'templates/css.php?callback=?', function(data){
 			$.template('css', data);
 
@@ -566,6 +579,7 @@ c.init = function(){
 	});
 	
 	// Color picker
+	var color_pos;
 	$('.value').live('keyup mousemove', function(e){
 		if (e.type === 'keyup'){
 			var offset = window.getSelection().getRangeAt(0).startOffset
@@ -590,13 +604,78 @@ c.init = function(){
 			color_box.css({left: left + 20, top: top - 70});
 			$('#color').css('background-color', color[0]);
 		}
-		else{
-			color_box.hide();
+	})
+	.live('keydown mouseenter mouseleave', function(e){
+		// Make sure color picker is there
+		var cp = $('#color_picker');
+		clearTimeout(cp[0].timer);
+		if($('#color_picker').is(':hidden')) return false;
+		// On keyup if not ctrl/shift or mouseenter
+		if((e.type === 'keydown' && !e.shiftKey && !e.metaKey) || (e.type === 'mouseenter' && c.active_value[0] === this)){
+			cp.hide();
 		}
+		// On mouseleave if not on color picker in 1 second
+		else if(e.type === 'mouseleave'){
+			cp.bind('mouseenter', function(e){
+				clearTimeout(cp[0].timer);
+			});
+			
+			cp[0].timer = setTimeout(function(){
+				cp.hide().unbind('mouseenter');
+			},1000)
+		}
+		
+		return true;
 	})
 	.live('mouseleave', function(e){
 		$('#color_wrap').hide();
+	})
+	.live('mouseup', function(e){
+		// If not ctrl+click
+		c.active_value = $(this);
+		color_pos = window.getSelection().getRangeAt(0).startOffset;
+		if(!e.metaKey || e.which !== 1) return true;
+		var offset = parseInt((e.clientX - $(this).offset().left) / ($(this).width() /$(this).text().length))
+			,left  = e.clientX
+			,top  = e.clientY + $('body').scrollTop()
+			,match_word = new RegExp('(.{0,'+offset+'})(\\s|^)(.+?)(\\s|$)')
+			,colors     = $(this).text().match(match_word)
+			,color      = colors[3].match(match_colors);
+		
+		if(color){
+			color_pos = offset;
+			$('#color_picker').ColorPickerSetColor(expandColor(color[0])).show().css({
+				position: 'absolute'
+				,left: e.clientX + 10
+				,top: e.clientY + $('body').scrollTop() + 10
+			});
+		}
+	
+		return true;
+	})
+	.live('update_color', function(e, hsb, hex, rgb){
+		var match_word = new RegExp('(.{0,'+color_pos+'})(\\s|^)(.+?)(\\s|$)')
+			,colors     = $(this).text().match(match_word)
+			,color      = colors[3].match(match_colors);
+			
+		if (color_pos){
+			var value = '#'+hex;
+			$(this).text(
+				$(this).text().replace(
+					new RegExp('(.{0,'+color_pos+'})(\\s|^)(.+?)(\\s|$)')
+					,'$1$2'+value+'$4'
+				)
+			).trigger('update');
+		}
 	});
+}
+
+var expandColor = function(color){
+	if (color[0] === '#' && color.length == 4){
+		return color.replace(/#([\dABCDEF])([\dABCDEF])([\dABCDEF])/i, '#$1$1$2$2$3$3');
+	}
+	
+	else return false;
 }
 
 c.getFiles = function(){
