@@ -609,7 +609,7 @@ c.init = function(){
 		// Make sure color picker is there
 		var cp = $('#color_picker');
 		clearTimeout(cp[0].timer);
-		if($('#color_picker').is(':hidden')) return false;
+		if($('#color_picker').is(':hidden')) return true;
 		// On keyup if not ctrl/shift or mouseenter
 		if((e.type === 'keydown' && !e.shiftKey && !e.metaKey) || (e.type === 'mouseenter' && c.active_value[0] === this)){
 			cp.hide();
