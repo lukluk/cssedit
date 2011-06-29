@@ -39,7 +39,7 @@ c.init = function(){
 		});
 	}
 	// Build regex to match all known colors
-	match_colors = new RegExp('(#[A-z0-9]{3}\\b|#[A-z0-9]{6}\\b|#[A-z0-9]{8}\\b|rgba\\([0-9]{1,3},[0-9]{1,3},[0-9]{1,3},[0-9]{1,3}\\)|rgb\\([0-9]{1,3},[0-9]{1,3},[0-9]{1,3}\\)' + '|' + c.hints.keywords.color.join('|') + ')', 'i');
+	match_colors = new RegExp('(#[A-z0-9]{3}\\b|#[A-z0-9]{6}\\b|#[A-z0-9]{8}\\b|rgba\\([0-9]{1,3},[0-9]{1,3},[0-9]{1,3},\\d?(\\.\\d+)?\\)|rgb\\([0-9]{1,3},[0-9]{1,3},[0-9]{1,3}\\)' + '|' + c.hints.keywords.color.join('|') + ')', 'i');
 
 	// Find CSS files that we will be working with.
 	// CSS files will be limited by same-origin policy so make sure they are
@@ -659,11 +659,10 @@ c.init = function(){
 			,color      = colors[3].match(match_colors);
 			
 		if (color_pos){
-			var value = '#'+hex;
 			$(this).text(
 				$(this).text().replace(
 					new RegExp('(.{0,'+color_pos+'})(\\s|^)(.+?)(\\s|$)')
-					,'$1$2'+value+'$4'
+					,'$1$2'+updateColor(color[0], hsb, hex, rgb)+'$4'
 				)
 			).trigger('update');
 		}
@@ -674,7 +673,36 @@ var expandColor = function(color){
 	if (color[0] === '#' && color.length == 4){
 		return color.replace(/#([\dABCDEF])([\dABCDEF])([\dABCDEF])/i, '#$1$1$2$2$3$3');
 	}
-	
+	else if (color[0] === '#' && color.length == 7){
+		return color;
+	}
+	else if (color.substr(0, 3) === 'rgb'){
+		var match = color.match(/rgba?\((\d{1,3}),(\d{1,3}),(\d{1,3})(,\d?.?\d?)?\)/);
+		return {
+			r: match[1]
+			,g: match[2]
+			,b: match[3]
+		}
+	}
+	else return false;
+}
+
+var updateColor = function(old, hsb, hex, rgb){
+	if ((old[0] === '#' && old.length == 4) || (old[0] === '#' && old.length == 7)){
+		// Can the new color be compressed back down to 3?
+		var compressed = hex.match(/([\dABCDEF])\1([\dABCDEF])\2([\dABCDEF])\3/i);
+		if (compressed){
+			return '#' + compressed[1]+compressed[2]+compressed[3];
+		}
+		else return '#' + hex;
+	}
+	else if (old[0] === '#' && old.length == 7){
+		return '#' + hex;
+	}
+	else if (old.substr(0, 3) === 'rgb'){
+		var match = old.match(/(rgba?)\((\d{1,3}),(\d{1,3}),(\d{1,3})((,\d?(\.\d+)?)?)\)/);
+		return match[1] + '('+rgb.r+','+rgb.g+','+rgb.b+match[5]+')';
+	}
 	else return false;
 }
 
