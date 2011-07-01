@@ -322,6 +322,7 @@ c.init = function(){
 		c.ss.update_template();
 		c.ss.update_element();
 
+		$('<div />',{'class':'handle'}).appendTo(wrap);
 		$('<input />',{'type': 'checkbox','checked':'checked'}).appendTo(wrap);
 		$('<div />',{'class': 'name','contenteditable':'true'}).appendTo(wrap).focus();
 		$('<div />',{'class': 'value','contenteditable':'true'}).appendTo(wrap);
@@ -733,6 +734,7 @@ c.display = function(url){
 		,update: function(e, ui){
 			var dec = $(this).closest('.dec').index('.dec,.comment');
 			c.ss.move_property(dec, sort_start, ui.item.index());
+			c.ss.update_element();
 		}
 		,start: function(e, ui){
 			sort_start = ui.item.index();
