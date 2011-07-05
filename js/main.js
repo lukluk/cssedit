@@ -759,8 +759,8 @@ c.move = function(){
 				clearInterval(inter);
 
 				var head = page.document.getElementsByTagName('head')[0]
-					,scripts = ['js/jquery-1.5.2.js','js/jquery-ui-1.8.11.custom.min.js','js/jquery.tmpl.js','js/main.js']
-					,styles = ['css/master.css','css/theme/jquery-ui-1.8.11.custom.css']
+					,scripts = ['js/jquery-1.5.2.js','js/jquery-ui-1.8.11.custom.min.js','js/jquery.tmpl.js','js/colorpicker.js','js/main.js']
+					,styles = ['css/master.css','css/theme/jquery-ui-1.8.11.custom.css', 'css/colorpicker.css']
 
 				for (i in styles){
 					var style = page.document.createElement('link');
