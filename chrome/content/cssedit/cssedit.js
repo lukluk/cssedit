@@ -1427,6 +1427,10 @@ ss.fn.path = function(){
 	return c.expandRelative(this.url);
 }
 
+ss.fn.file = function(){
+	return this.url.match(/\/([^/]+)$/)[1];
+}
+
 
 ss.fn.save = function(){
 	// Query DB for info on file
@@ -1442,7 +1446,7 @@ ss.fn.save = function(){
 		
 		filePicker.init(window, 'Save CSS', filePicker.modeSave);
 		filePicker.defaultExtension = '.css';
-		filePicker.defaultString = this.url;
+		filePicker.defaultString = this.file();
 		filePicker.appendFilter('CSS', '*.css');
 		filePicker.appendFilter('Everything', filePicker.filterAll);
 		
