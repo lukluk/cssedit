@@ -1,21 +1,21 @@
 <div>
-<div id="header">
-	<form action="#">
-		<fieldset>
-			<select id="cssedit_file" name="file">
-				{{each(i,file) files}}
-				<option value="${i}">${file}</option>
-				{{/each}}
-			</select>
-		</fieldset>
-	</form>
-	<a id="sort" title="Enable Sorting" class="sort"></a>
-	<a id="save" title="Save" class="save"></a>
-	<a id="toggle_expand" title="Expand View"></a>
-</div>
-<div id="color_picker"/>
-<div id="color_wrap"><div id="color"></div></div>
-<div id="stylesheet" contenteditable="false" class="stylesheets">
-
-</div>
+	<div id="header">
+		<form action="#">
+			<fieldset>
+				<select id="cssedit_file" name="file">
+					{{each(i,file) files}}
+					<option value="${i}">${file}</option>
+					{{/each}}
+				</select>
+			</fieldset>
+		</form>
+		<a class="save_as" title="Save As...">Save As...</a>
+		<a class="save" title="Save" class="save">Save</a>
+		<a class="sort" title="Enable Sorting" class="sort">Enable Sorting</a>
+	</div>
+	<div id="color_picker"/>
+	<div id="color_wrap"><div id="color"></div></div>
+	<div id="stylesheet" contenteditable="false" class="stylesheets">
+	
+	</div>
 </div>

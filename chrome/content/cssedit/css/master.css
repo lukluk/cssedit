@@ -13,9 +13,9 @@ body{
 	position:fixed;
 	top:0;
 	left:0;
-    padding:10px;
+    padding:10px 1%;
 	background:#fff;
-	width:100%;
+	width:98%;
 	box-shadow:0 0 5px rgba(0, 0, 0, 0.2);
 }
 fieldset{
@@ -104,24 +104,20 @@ fieldset{
 	display:none;
 }
 
-#toggle_expand, #save, #sort{
-	position:fixed;
-	height:20px;
-	width:20px;
-	top:8px;
+#header form{
+	float:left;
+	margin: 4px 0;
 }
 
-#save{
-	right:5px;
+#header a{
+	float: right;
+	margin-left: 5px;
 }
-
-#sort{
-	right:32px;
-	cursor: pointer !important;
+.ui-button-icon-only{
+	width: 2em;
 }
-
-#toggle_expand .ui-button-icon-primary, #save .ui-button-icon-primary, #sort .ui-button-icon-primary{
-	left:2px;
+.ui-button-icon-only .ui-button-text, .ui-button-icons-only .ui-button-text{
+	padding: 0.2em;
 }
 
 #hints:empty{

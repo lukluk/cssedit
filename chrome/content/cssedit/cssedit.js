@@ -211,9 +211,9 @@ CSSEditPanel.prototype = extend(Firebug.Panel,
 		if(c.context.files.length === 0) c.context.files = c.getFiles();
 		
 		// Build interface		
+		jQuery('<link />',{type: 'text/css',rel: 'stylesheet', href: 'chrome://cssedit/content/css/master.css'}).prependTo(this.panelNode);
 		jQuery('<link />',{type: 'text/css',rel: 'stylesheet', href: 'chrome://cssedit/content/css/theme/jquery-ui-1.8.11.custom.css'}).prependTo(this.panelNode);
 		jQuery('<link />',{type: 'text/css',rel: 'stylesheet', href: 'chrome://cssedit/content/css/colorpicker.css'}).prependTo(this.panelNode);
-		jQuery('<link />',{type: 'text/css',rel: 'stylesheet', href: 'chrome://cssedit/content/css/master.css'}).prependTo(this.panelNode);
 		
 		this.load('chrome://cssedit/content/templates/interface.html', function(data){
 			var files = c.getFiles();
@@ -221,8 +221,9 @@ CSSEditPanel.prototype = extend(Firebug.Panel,
 			jQuery.tmpl('interface',{files: files}).appendTo(c.panelNode);
 			
 			jQuery(c.panelNode)
-			.find('.sort').button({icons: { primary: 'ui-icon ui-icon-arrowthick-2-n-s' }})
-			.next('.save').button({icons: {primary: 'ui-icon-disk'}});
+			.find('.save_as').button({icons: {primary: 'ui-icon-folder-open'}, text: false})
+			.next('.save').button({icons: {primary: 'ui-icon-disk'}, text: false})
+			.next('.sort').button({icons: { primary: 'ui-icon ui-icon-arrowthick-2-n-s' }, text: false});
 			
 			jQuery(c.panelNode).find('#color_picker').ColorPicker({
 			flat: true
@@ -255,12 +256,16 @@ CSSEditPanel.prototype = extend(Firebug.Panel,
 	},
 		
 	liveEvents: function() {
-		jQuery('#save').live('click', function(e){
+		jQuery('.save').live('click', function(e){
 			c.context.ss.save();
 		});
 		
+		jQuery('.save_as').live('click', function(e){
+			c.context.ss.save_as();
+		});
+		
 		var sort_start;
-		jQuery('#sort').live('click', function(e){
+		jQuery('.sort').live('click', function(e){
 			jQuery(c.panelNode).find('.stylesheets').sortable({
 				axis: 'y',
 				containment: 'parent',
@@ -1466,6 +1471,39 @@ ss.fn.save = function(){
 	else{
 		// Yes, write to disk
 		FileIO.write(FileIO.open(query.row.localFile), this.render());
+	}
+}
+
+ss.fn.save_as = function(){
+	// Query DB for info on file
+	var db = c.getDB();
+
+	var filePicker = Components.classes["@mozilla.org/filepicker;1"]
+		.createInstance(Components.interfaces.nsIFilePicker);
+	
+	filePicker.init(window, 'Save CSS As', filePicker.modeSave);
+	filePicker.defaultExtension = '.css';
+	filePicker.defaultString = this.file();
+	filePicker.appendFilter('CSS', '*.css');
+	filePicker.appendFilter('Everything', filePicker.filterAll);
+	
+	var rv = filePicker.show();
+	if (rv === filePicker.returnOK || rv === filePicker.returnReplace) {
+		// They picked a file, write to disk
+		FileIO.write(filePicker.file, this.render());
+		
+		var query = db.createStatement("SELECT `localFile` FROM `files` WHERE `file` = :file LIMIT 1");
+		query.params.file = this.path();
+		
+		if (query.executeStep()){
+			var query = db.createStatement("UPDATE `files` SET `localFile` = :localFile WHERE `file` = :file");
+		}
+		else{
+			var query = db.createStatement("INSERT INTO `files` (`file`, `localFile`) VALUES (:file, :localFile)");
+		}
+		query.params.file = this.path();
+		query.params.localFile = filePicker.file.persistentDescriptor;
+		query.execute();
 	}
 }
 
