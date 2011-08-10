@@ -7,6 +7,7 @@
  * http://jquery.org/license
  */
 (function( jQuery, undefined ){
+	
 	var oldManip = jQuery.fn.domManip, tmplItmAtt = "_tmplitem", htmlExpr = /^[^<]*(<[\w\W]+>)[^>]*$|\{\{\! /,
 		newTmplItems = {}, wrappedItems = {}, appendToTmplItems, topTmplItem = { key: 0, data: {} }, itemKey = 0, cloneIndex = 0, stack = [];
 
@@ -486,4 +487,4 @@
 		jQuery.tmpl( null, null, null, this).insertBefore( coll[0] );
 		jQuery( coll ).remove();
 	}
-})( jQuery );
+})( this.panelBrowser.contentWindow.jQuery );

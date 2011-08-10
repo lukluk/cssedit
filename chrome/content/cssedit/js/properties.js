@@ -1,7 +1,7 @@
 // Original from Firebug project:
 // http://code.google.com/p/fbug/source/browse/branches/firebug1.8/content/firebug/lib/css.js?spec=svn10427&r=10427
 
-cssedit.hints.properties = {
+c.hints.properties = {
     "background": ["bgRepeat", "bgAttachment", "bgPosition", "color", "systemColor",
         "mozBackgroundImage", "none"],
     "background-attachment": ["bgAttachment"],
@@ -181,7 +181,7 @@ cssedit.hints.properties = {
     "-moz-transition-delay": [] //FF4.0 TODO
 
 }
-cssedit.hints.keywords =
+c.hints.keywords =
 {
     "mozAppearance":
     [

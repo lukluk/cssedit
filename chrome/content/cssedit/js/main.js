@@ -583,7 +583,7 @@ c.init = function(){
 	var color_pos;
 	$('.value').live('keyup mousemove', function(e){
 		if (e.type === 'keyup'){
-			var offset = window.getSelection().getRangeAt(0).startOffset
+			var offset = c.document.defaultView.getSelection().getRangeAt(0).startOffset
 				,box   = $(this).offset()
 				,left  = box.left + ($(this).width() /$(this).text().length) * offset
 				,top   = box.top;
@@ -634,7 +634,7 @@ c.init = function(){
 	.live('mouseup', function(e){
 		// If not ctrl+click
 		c.active_value = $(this);
-		color_pos = window.getSelection().getRangeAt(0).startOffset;
+		color_pos = c.document.defaultView.getSelection().getRangeAt(0).startOffset;
 		if(!e.metaKey || e.which !== 1) return true;
 		var offset = parseInt((e.clientX - $(this).offset().left) / ($(this).width() /$(this).text().length))
 			,left  = e.clientX

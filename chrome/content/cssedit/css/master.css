@@ -28,6 +28,8 @@ fieldset{
 }
 .dec .properties{
 	margin:5px 0 5px 10px;
+	font-size: 0;
+	
 }
 .dec .selector:after{
     content:" {";
@@ -95,6 +97,7 @@ fieldset{
 
 .dec .name,.dec .value{
 	display:inline;
+	font-size: 12px;
 }
 
 .dec br{
@@ -108,16 +111,12 @@ fieldset{
 	top:8px;
 }
 
-#toggle_expand{
-	right:8px;
-}
-
 #save{
-	right:36px;
+	right:5px;
 }
 
 #sort{
-	right:64px;
+	right:32px;
 	cursor: pointer !important;
 }
 
@@ -133,7 +132,7 @@ fieldset{
 	background: rgba(0,0,0,.7);
 	box-shadow: 0 0 5px #000;
 	line-height:16px;
-	position:absolute;
+	position:fixed;
 	list-style-type:none;
 	color:#eee;
 	padding:5px;
@@ -167,7 +166,7 @@ fieldset{
 	width: 50px;
 	height: 50px;
 	padding: 5px;
-	position: absolute;
+	position: fixed;
 	display: none;
 	background: #808080; /* 50 gray */
 }
@@ -175,4 +174,8 @@ fieldset{
 #color{
 	width: 50px;
 	height: 50px;
+}
+
+#color_picker{
+	position: fixed !important;
 }
