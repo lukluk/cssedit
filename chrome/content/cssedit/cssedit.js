@@ -223,6 +223,20 @@ CSSEditPanel.prototype = extend(Firebug.Panel,
 			jQuery(c.panelNode)
 			.find('.sort').button({icons: { primary: 'ui-icon ui-icon-arrowthick-2-n-s' }})
 			.next('.save').button({icons: {primary: 'ui-icon-disk'}});
+			
+			jQuery(c.panelNode).find('#color_picker').ColorPicker({
+			flat: true
+			,onChange: function(hsb,hex,rgb){
+				if (c.context.active_value){
+					c.context.active_value.trigger('update_color', arguments);
+				}
+			}
+		})
+		.hide()
+		.bind('mouseleave', function(e){
+			jQuery(this).hide();
+		});;
+
 		
 			c.load('chrome://cssedit/content/templates/css.html', function(data){
 				jQuery.template('css', data);
@@ -278,20 +292,6 @@ CSSEditPanel.prototype = extend(Firebug.Panel,
 			c.display(url);
 		});
 	
-		// Decleration sorting
-	
-		jQuery('#color_picker').ColorPicker({
-			flat: true
-			,onChange: function(hsb,hex,rgb){
-				if (c.context.active_value){
-					c.context.active_value.trigger('update_color', arguments);
-				}
-			}
-		})
-		.hide()
-		.bind('mouseleave', function(e){
-			jQuery(this).hide();
-		});;
 		// Setup events
 	
 		// Right clicking things
@@ -746,94 +746,94 @@ CSSEditPanel.prototype = extend(Firebug.Panel,
 		});
 		
 		// Color picker
-		//var color_pos;
-		//jQuery('.value').live('keyup mousemove', function(e){
-		//	if (e.type === 'keyup'){
-		//		var offset = c.document.defaultView.getSelection().getRangeAt(0).startOffset
-		//			,box   = jQuery(this).offset()
-		//			,left  = box.left + (jQuery(this).width() /jQuery(this).text().length) * offset
-		//			,top   = box.top;
-		//	}
-		//	else{
-		//		var offset = parseInt((e.clientX - jQuery(this).offset().left) / (jQuery(this).width() /jQuery(this).text().length))
-		//			,left  = e.clientX
-		//			,top  = e.clientY + jQuery('body').scrollTop();
-		//	}
-		//	
-		//	var match_word = new RegExp('(.{0,'+offset+'})(\\s|^)(.+?)(\\s|$)')
-		//		,colors = jQuery(this).text().match(match_word)
-		//		,color = colors[3].match(match_colors);
-		//	
-		//	
-		//	var color_box = jQuery('#color_wrap');
-		//	if (color){
-		//		color_box.show();
-		//		color_box.css({left: left + 20, top: top - 70});
-		//		jQuery('#color').css('background-color', color[0]);
-		//	}
-		//})
-		//.live('keydown mouseenter mouseleave', function(e){
-		//	// Make sure color picker is there
-		//	var cp = jQuery('#color_picker');
-		//	clearTimeout(cp[0].timer);
-		//	if(jQuery('#color_picker').is(':hidden')) return true;
-		//	// On keyup if not ctrl/shift or mouseenter
-		//	if((e.type === 'keydown' && !e.shiftKey && !e.metaKey) || (e.type === 'mouseenter' && c.context.active_value[0] === this)){
-		//		cp.hide();
-		//	}
-		//	// On mouseleave if not on color picker in 1 second
-		//	else if(e.type === 'mouseleave'){
-		//		cp.bind('mouseenter', function(e){
-		//			clearTimeout(cp[0].timer);
-		//		});
-		//		
-		//		cp[0].timer = setTimeout(function(){
-		//			cp.hide().unbind('mouseenter');
-		//		},1000)
-		//	}
-		//	
-		//	return true;
-		//})
-		//.live('mouseleave', function(e){
-		//	jQuery('#color_wrap').hide();
-		//})
-		//.live('mouseup', function(e){
-		//	// If not ctrl+click
-		//	c.context.active_value = jQuery(this);
-		//	color_pos = c.document.defaultView.getSelection().getRangeAt(0).startOffset;
-		//	if(!e.metaKey || e.which !== 1) return true;
-		//	var offset = parseInt((e.clientX - jQuery(this).offset().left) / (jQuery(this).width() /jQuery(this).text().length))
-		//		,left  = e.clientX
-		//		,top  = e.clientY + jQuery('body').scrollTop()
-		//		,match_word = new RegExp('(.{0,'+offset+'})(\\s|^)(.+?)(\\s|$)')
-		//		,colors     = jQuery(this).text().match(match_word)
-		//		,color      = colors[3].match(match_colors);
-		//	
-		//	if(color){
-		//		color_pos = offset;
-		//		jQuery('#color_picker').ColorPickerSetColor(expandColor(color[0])).show().css({
-		//			position: 'absolute'
-		//			,left: e.clientX + 10
-		//			,top: e.clientY + jQuery('body').scrollTop() + 10
-		//		});
-		//	}
-		//
-		//	return true;
-		//})
-		//.live('update_color', function(e, hsb, hex, rgb){
-		//	var match_word = new RegExp('(.{0,'+color_pos+'})(\\s|^)(.+?)(\\s|$)')
-		//		,colors     = jQuery(this).text().match(match_word)
-		//		,color      = colors[3].match(match_colors);
-		//		
-		//	if (color_pos){
-		//		jQuery(this).text(
-		//			jQuery(this).text().replace(
-		//				new RegExp('(.{0,'+color_pos+'})(\\s|^)(.+?)(\\s|$)')
-		//				,'$1$2'+updateColor(color[0], hsb, hex, rgb)+'$4'
-		//			)
-		//		).trigger('update');
-		//	}
-		//});
+		var color_pos;
+		jQuery('.value').live('keyup mousemove', function(e){
+			if (e.type === 'keyup'){
+				var offset = c.document.defaultView.getSelection().getRangeAt(0).startOffset
+					,box   = jQuery(this).offset()
+					,left  = box.left + (jQuery(this).width() /jQuery(this).text().length) * offset
+					,top   = box.top;
+			}
+			else{
+				var offset = parseInt((e.clientX - jQuery(this).offset().left) / (jQuery(this).width() /jQuery(this).text().length))
+					,left  = e.clientX
+					,top  = e.clientY + jQuery('body').scrollTop();
+			}
+			
+			var match_word = new RegExp('(.{0,'+offset+'})(\\s|^)(.+?)(\\s|$)')
+				,colors = jQuery(this).text().match(match_word)
+				,color = colors[3].match(match_colors);
+			
+			
+			var color_box = jQuery(c.panelNode).find('#color_wrap');
+			if (color){
+				color_box.show();
+				color_box.css({left: left + 20, top: top - 70});
+				jQuery(c.panelNode).find('#color').css('background-color', color[0]);
+			}
+		})
+		.live('keydown mouseenter mouseleave', function(e){
+			// Make sure color picker is there
+			var cp = jQuery(c.panelNode).find('#color_picker');
+			clearTimeout(cp[0].timer);
+			if(cp.is(':hidden')) return true;
+			// On keyup if not ctrl/shift or mouseenter
+			if((e.type === 'keydown' && !e.shiftKey && !e.metaKey) || (e.type === 'mouseenter' && c.context.active_value[0] === this)){
+				cp.hide();
+			}
+			// On mouseleave if not on color picker in 1 second
+			else if(e.type === 'mouseleave'){
+				cp.bind('mouseenter', function(e){
+					clearTimeout(cp[0].timer);
+				});
+				
+				cp[0].timer = setTimeout(function(){
+					cp.hide().unbind('mouseenter');
+				},1000)
+			}
+			
+			return true;
+		})
+		.live('mouseleave', function(e){
+			jQuery(c.panelNode).find('#color_wrap').hide();
+		})
+		.live('mouseup', function(e){
+			// If not ctrl+click
+			c.context.active_value = jQuery(this);
+			color_pos = c.document.defaultView.getSelection().getRangeAt(0).startOffset;
+			if(!e.metaKey || e.which !== 1) return true;
+			var offset = parseInt((e.clientX - jQuery(this).offset().left) / (jQuery(this).width() /jQuery(this).text().length))
+				,left  = e.clientX
+				,top  = e.clientY + jQuery('body').scrollTop()
+				,match_word = new RegExp('(.{0,'+offset+'})(\\s|^)(.+?)(\\s|$)')
+				,colors     = jQuery(this).text().match(match_word)
+				,color      = colors[3].match(match_colors);
+			
+			if(color){
+				color_pos = offset;
+				jQuery(c.panelNode).find('#color_picker').ColorPickerSetColor(expandColor(color[0])).show().css({
+					position: 'absolute'
+					,left: e.clientX + 10
+					,top: e.clientY + jQuery('body').scrollTop() + 10
+				});
+			}
+		
+			return true;
+		})
+		.live('update_color', function(e, hsb, hex, rgb){
+			var match_word = new RegExp('(.{0,'+color_pos+'})(\\s|^)(.+?)(\\s|$)')
+				,colors     = jQuery(this).text().match(match_word)
+				,color      = colors[3].match(match_colors);
+				
+			if (color_pos){
+				jQuery(this).text(
+					jQuery(this).text().replace(
+						new RegExp('(.{0,'+color_pos+'})(\\s|^)(.+?)(\\s|$)')
+						,'$1$2'+updateColor(color[0], hsb, hex, rgb)+'$4'
+					)
+				).trigger('update');
+			}
+		});
     },
 	
 	dec_index: function(item){
