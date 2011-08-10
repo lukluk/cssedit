@@ -1,0 +1,2 @@
+content cssedit chrome/content/cssedit/
+overlay chrome://firebug/content/firebugOverlay.xul         chrome://cssedit/content/cssedit.xul
