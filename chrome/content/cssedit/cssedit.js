@@ -176,11 +176,11 @@ CSSEditPanel.prototype = extend(Firebug.Panel,
 	
     initialize: function() {
 		Firebug.Panel.initialize.apply(this, arguments);
-		this.context.files = [];
-		this.context.stylesheets = {};
-		this.context.active_value = false;
+		if (typeof this.context.files === 'undefined') this.context.files = [];
+		if (typeof this.context.stylesheet === 'undefined') this.context.stylesheet = {};
+		if (typeof this.context.active_value === 'undefined') this.context.active_value = false;
 	},
-	
+		
 	destroy: function(){
 		Firebug.Panel.destroy.apply(this, arguments);
 	},
