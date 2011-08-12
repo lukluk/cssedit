@@ -138,29 +138,33 @@ var FileIO = {
 Firebug.CSSEditModel = extend(Firebug.Module, {
     initialize: function(prefDomain, prefNames) {
         Firebug.Module.initialize.apply(this, arguments);
-		console.log('Module init', this, arguments);
     },
 	
 	showPanel: function(browser, panel){
-		c = panel;
-		if(init){
-			panel.render();
-			panel.setupDB();
-			init = false;
+		if (panel.name === 'CSSEdit' || panel.name === 'CSSEditHTMLPanel'){
+			c = panel;
+			if(panel.panelNode.children.length === 0){
+				panel.render();
+				panel.setupDB();
+			}
+			else{
+				panel.refreshView();
+			}
+			
+			if(!panel.panelBrowser.contentWindow.jQuery){
+				panel.addScripts();
+				panel.liveEvents();
+			}
+			else{
+				jQuery = panel.panelBrowser.contentWindow.jQuery;
+			}
+			
 		}
-		else if(!panel.panelBrowser.contentWindow.jQuery){
-			panel.addScripts();
-			panel.liveEvents();
-		}
-		else{
-			jQuery = panel.panelBrowser.contentWindow.jQuery;
-		}
-		
 	},
-
-	loadedContext: function(){
-		//console.log('loadedContext');
-		init = true;
+	
+	showSidePanel: function(browser, panel){
+		this.showPanel.apply(this, arguments);
+		panel.filterView(FirebugContext.getPanel('html').selection);
 	}
 });
 
