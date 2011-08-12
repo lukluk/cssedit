@@ -1,8 +1,8 @@
 FBL.ns(function() { with (FBL) {
 var jQuery, c, hints, match_colors;
-var init = true;
 var setup = true;
 var panelName = 'CSSEdit';
+var DomUtils = FBL.CCSV("@mozilla.org/inspector/dom-utils;1", "inIDOMUtils");
 var FileIO = {
 
 		localfileCID  : '@mozilla.org/file/local;1',
@@ -1018,6 +1018,74 @@ CSSEditPanel.prototype = extend(Firebug.Panel,
 	}
 
 });
+
+function CSSEditHTMLPanel(){};
+CSSEditHTMLPanel.prototype = extend(CSSEditPanel.prototype, {
+	name: 'CSSEditHTMLPanel',
+	title: 'CSSEdit',
+	parentPanel: 'html',
+	
+	initialize: function() {
+		Firebug.Panel.initialize.apply(this, arguments);
+		Firebug.registerUIListener(this);
+
+		if (typeof this.context.files === 'undefined') this.context.files = [];
+		if (typeof this.context.stylesheet === 'undefined') this.context.stylesheet = {};
+		if (typeof this.context.active_value === 'undefined') this.context.active_value = false;
+	},
+	
+	onObjectSelected: function(node, context){
+		this.filterView(node);
+	},
+
+	filterView: function(element){
+		var panel = jQuery(c.panelNode);
+		panel.find('.wrap').addClass('filtered');
+		
+		var styles = this.findStyles(element);
+		var matchedStyles = [];
+		var matchedStyleSheets = [];
+		for (var i = 0; i < styles.length; i++){
+			var sheet = styles[i][0],
+			    style = styles[i][1];
+				
+			for (var x = 0; x < sheet.styles.length; x++){
+				if (sheet.styles[x].selector === style.selectorText){
+					matchedStyles.push(sheet.styles[x]);
+				}
+			}
+		}
+		panel.find('.stylesheet').html(jQuery.tmpl('css', {decs: matchedStyles}));		
+	},
+	
+	findStyles: function(element){
+		try {
+			inspectedRules = domUtils ? domUtils.getCSSStyleRules(element) : null;
+		} catch (exc) {}
+		
+		var matchedStyles = [];
+		if (inspectedRules) {
+			for (var i = 0; i < inspectedRules.Count(); ++i) {
+				var style = inspectedRules.GetElementAt(i);
+				
+				// Do we control the stylesheet that it belongs to?
+				for (var x in c.context.stylesheet){
+					if(c.context.stylesheet[x].styleObject[0] === style.parentStyleSheet.ownerNode){
+						matchedStyles.push([c.context.stylesheet[x], style]);
+						break;
+					}
+				}
+			}
+			
+			return matchedStyles;
+		}
+		else return false;
+	},
+
+});
+
+
+Firebug.registerPanel(CSSEditHTMLPanel);
 Firebug.registerPanel(CSSEditPanel);
 Firebug.registerModule(Firebug.CSSEditModel);
 
@@ -1119,6 +1187,7 @@ ss.fn.parse = function(){
 				,selector: jQuery.trim(selector)
 				,selector_index: selector_index++
 				,properties: properties
+				,styleSheet: this.url
 			});
 			place_holder += current;
 			in_dec = in_property = in_value = false;
@@ -1168,6 +1237,7 @@ ss.fn.parse = function(){
 				type: 'comment'
 				,text: comment
 				,index: prop_index++
+				,styleSheet: this.url
 			});
 			in_comment = in_dec = in_property = in_value = false;
 			comment = current = selector = property = value = '';

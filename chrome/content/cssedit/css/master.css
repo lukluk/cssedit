@@ -15,7 +15,16 @@ body{
 	position: relative;
 }
 
-#header{
+.wrap.filtered .header{
+	display: none;
+}
+
+.wrap.filtered .stylesheet{
+	margin: 0;
+	padding: 0 10px;
+}
+
+.header{
 	position:fixed;
 	top:0;
     padding:10px 1%;
@@ -25,14 +34,14 @@ body{
 	z-index: -1;
 }
 
-#header a:first-of-type{
+.header a:first-of-type{
 	margin-right: 15px;
 }
 
 fieldset{
 	border:0;
 }
-.stylesheets{
+.stylesheet{
 	font-family:monospace;
 	margin-top:40px;
     padding:10px;
@@ -117,12 +126,12 @@ fieldset{
 	display:none;
 }
 
-#header form{
+.header form{
 	float:left;
 	margin: 4px 0;
 }
 
-#header a{
+.header a{
 	float: right;
 	margin-left: 5px;
 }

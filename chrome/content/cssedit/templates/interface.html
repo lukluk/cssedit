@@ -1,5 +1,5 @@
-<div class="wrap">
-	<div id="header">
+<div class="wrap{{if panel.name === 'CSSEditHTMLPanel'}} filtered{{/if}}">
+	<div class="header">
 		<form action="#">
 			<fieldset>
 				<select id="cssedit_file" name="file">
@@ -11,11 +11,11 @@
 		</form>
 		<a class="save_as" title="Save As...">Save As...</a>
 		<a class="save" title="Save" class="save">Save</a>
-		<a class="sort" title="Enable Sorting" class="sort">Enable Sorting</a>
+		<a class="sort" title="Enable Sorting">Enable Sorting</a>
 	</div>
 	<div id="color_picker"/>
 	<div id="color_wrap"><div id="color"></div></div>
-	<div id="stylesheet" contenteditable="false" class="stylesheets">
+	<div id="stylesheet" contenteditable="false" class="stylesheet">
 	
 	</div>
 </div>
