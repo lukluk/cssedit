@@ -220,9 +220,8 @@ CSSEditPanel.prototype = extend(Firebug.Panel,
 		jQuery('<link />',{type: 'text/css',rel: 'stylesheet', href: 'chrome://cssedit/content/css/colorpicker.css'}).prependTo(this.panelNode);
 		
 		this.load('chrome://cssedit/content/templates/interface.html', function(data){
-			var files = c.getFiles();
 			jQuery.template('interface',data);
-			jQuery.tmpl('interface',{files: files}).appendTo(c.panelNode);
+			jQuery.tmpl('interface',{files: c.context.files, panel: c}).appendTo(c.panelNode);
 			
 			jQuery(c.panelNode)
 			.find('.save_as').button({icons: {primary: 'ui-icon-folder-open'}, text: false})
