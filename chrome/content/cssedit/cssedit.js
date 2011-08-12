@@ -214,6 +214,14 @@ CSSEditPanel.prototype = extend(Firebug.Panel,
 		// on the same domain.
 		if(c.context.files.length === 0) c.context.files = c.getFiles();
 		
+		// Load all files
+		for (var i = 0; i < c.context.files.length; i++){
+			var url = c.context.files[i];
+			if (typeof c.context.stylesheet[url] === 'undefined'){
+				c.context.stylesheet[url] = new ss(url);
+			}
+		}
+		
 		// Build interface		
 		jQuery('<link />',{type: 'text/css',rel: 'stylesheet', href: 'chrome://cssedit/content/css/master.css'}).prependTo(this.panelNode);
 		jQuery('<link />',{type: 'text/css',rel: 'stylesheet', href: 'chrome://cssedit/content/css/theme/jquery-ui-1.8.11.custom.css'}).prependTo(this.panelNode);
