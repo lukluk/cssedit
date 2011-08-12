@@ -252,32 +252,47 @@ CSSEditPanel.prototype = extend(Firebug.Panel,
 		
 			c.load('chrome://cssedit/content/templates/css.html', function(data){
 				jQuery.template('css', data);
+
+				if (c.name === 'CSSEdit'){
+					// Auto display the first CSS file
+					c.display(c.context.files[0]);
+				}
+				else if (c.name === 'CSSEditHTMLPanel'){
+					c.filterView(FirebugContext.getPanel('html').selection);
+				}
 			
-				// Auto display the first CSS file
-				c.display(c.context.files[0]);
-				
 				if (setup){
 					setup = false;
 					c.liveEvents();
 				}
-				
 			});
 		});
 		
 	},
 		
+	
+	
+	stylesheet: function(stylesheet){
+		if (!stylesheet) stylesheet = c.context.files[jQuery(c.panelNode).find('select').val()];
+		return c.context.stylesheet[stylesheet];
+	},
+	
+	refreshView: function(){
+		c.display(c.stylesheet().url);
+	},
+	
 	liveEvents: function() {
 		jQuery('.save').live('click', function(e){
-			c.context.ss.save();
+			c.stylesheet().save();
 		});
 		
 		jQuery('.save_as').live('click', function(e){
-			c.context.ss.save_as();
+			c.stylesheet().save_as();
 		});
 		
 		var sort_start;
 		jQuery('.sort').live('click', function(e){
-			jQuery(c.panelNode).find('.stylesheets').sortable({
+			jQuery(c.panelNode).find('.stylesheet').sortable({
 				axis: 'y',
 				containment: 'parent',
 				items: '.dec, .comment',
@@ -293,7 +308,7 @@ CSSEditPanel.prototype = extend(Firebug.Panel,
 					jQuery('<div />',{'class':'grabber'}).insertBefore(node.find('.dec,.comment'));
 					jQuery('<div />',{'class':'grabber'}).appendTo(node.find('#stylesheet'));
 		
-					c.context.ss.move_dec(sort_start, c.dec_index(ui.item));
+					c.stylesheet().move_dec(sort_start, c.dec_index(ui.item));
 				},
 				start: function(e, ui){
 					sort_start = c.dec_index(ui.item);
@@ -340,9 +355,12 @@ CSSEditPanel.prototype = extend(Firebug.Panel,
 							jQuery(e.target).parent().parent().remove();
 							var prop = e.data.property.index()
 								,dec = c.dec_index(e.data.property);
-							c.context.ss.styles[dec].properties[prop].deleted = true;
-							c.context.ss.update_template();
-							c.context.ss.update_element();
+							
+							dec = jQuery.tmplItem(target).data.decs[dec];
+
+							dec.properties[prop].deleted = true;
+							c.stylesheet(dec.styleSheet).update_template();
+							c.stylesheet(dec.styleSheet).update_element();
 							e.data.property.remove();
 						});
 	
@@ -356,7 +374,7 @@ CSSEditPanel.prototype = extend(Firebug.Panel,
 					}
 	
 					// Show menu to insert dec/comment
-					else if (target.is('.grabber')){
+					else if (target.is('.grabber') && c.name === 'CSSEdit'){
 						var menu = jQuery('<div />',{'class':'cssedit_menu'})
 						.css({position: 'fixed', left: e.clientX-15, top: e.clientY-15})
 						.appendTo('body')
@@ -422,15 +440,17 @@ CSSEditPanel.prototype = extend(Firebug.Panel,
 			// Else update object
 			else{
 				var index = c.dec_index(e.target);
-				c.context.ss.styles[index].selector = jQuery(e.target).text();
-				c.context.ss.update_element();
+				var dec = jQuery.tmplItem(this).data.decs[index];
+				dec.selector = jQuery(e.target).text();
+				c.stylesheet(dec.styleSheet).update_element();
 			}
 		});
 	
 		// Changing comment
 		jQuery('.comment').live('keyup',function(e){
 			var index = c.dec_index(e.target);
-			c.context.ss.styles[index].text = jQuery(e.target).html().replace(new RegExp('<br>', 'gi'), "\n");
+			var comment = jQuery.tmplItem(this).data.decs[index];
+			comment.text = jQuery(e.target).html().replace(new RegExp('<br>', 'gi'), "\n");
 		});
 	
 		// Value/name navigation
@@ -452,13 +472,15 @@ CSSEditPanel.prototype = extend(Firebug.Panel,
 				}
 			}
 			else{
-				//c.
 				var dec = c.dec_index(e.target)
 					,prop = jQuery(e.target).parent().index()
 					,type = jQuery(e.target).attr('class');
-
-				c.context.ss.styles[dec].properties[prop][type] = jQuery(e.target).text();
-				c.context.ss.update_element();
+					
+				var tmplItem = jQuery.tmplItem(this).data;
+				dec = jQuery.tmplItem(this).data.decs[dec];
+				
+				dec.properties[prop][type] = jQuery(e.target).text();
+				c.stylesheet(dec.styleSheet).update_element();
 			}
 		});
 	
@@ -469,9 +491,13 @@ CSSEditPanel.prototype = extend(Firebug.Panel,
 					,dec = c.dec_index(e.target);
 	
 				jQuery(e.target).parent().remove();
-				c.context.ss.styles[dec].properties[prop].deleted = true;
-				c.context.ss.update_template();
-				c.context.ss.update_element();
+
+				var tmplItem = jQuery.tmplItem(this).data;
+				dec = jQuery.tmplItem(this).data.decs[dec];
+
+				dec.properties[prop].deleted = true;
+				c.stylesheet(dec.styleSheet).update_template();
+				c.stylesheet(dec.styleSheet).update_element();
 			}
 		});
 	
@@ -485,8 +511,11 @@ CSSEditPanel.prototype = extend(Firebug.Panel,
 			var dec = c.dec_index(e.target)
 				,prop = jQuery(e.target).parent().index()
 				,disabled = !e.target.checked
-			c.context.ss.styles[dec].properties[prop].disabled = disabled;
-			c.context.ss.update_element();
+			
+			dec = jQuery.tmplItem(this).data.decs[dec];
+			
+			dec.properties[prop].disabled = disabled;
+			c.stylesheet(dec.styleSheet).update_element();
 		});
 		// Press insert to insert property at current location
 		jQuery('.property').live('keyup',function(e){
@@ -506,13 +535,15 @@ CSSEditPanel.prototype = extend(Firebug.Panel,
 				var wrap = jQuery('<div />',{'class':'property'}).insertAfter(target.parent());
 	
 			}
-			c.context.ss.styles[dec].properties.splice(prop,0,{
+			dec = jQuery.tmplItem(this).data.decs[dec];
+			dec.properties.splice(prop,0,{
 				name: ''
 				,value: ''
 				,disabled: false
+				,styleSheet: dec.styleSheet
 			});
-			c.context.ss.update_template();
-			c.context.ss.update_element();
+			c.stylesheet(dec.styleSheet).update_template();
+			c.stylesheet(dec.styleSheet).update_element();
 	
 			jQuery('<div />',{'class':'handle'}).appendTo(wrap);
 			jQuery('<input />',{'type': 'checkbox','checked':'checked'}).appendTo(wrap);
@@ -524,11 +555,13 @@ CSSEditPanel.prototype = extend(Firebug.Panel,
 		jQuery('.grabber').live('add_comment',function(e){
 			var target = jQuery(e.target)
 				,index = c.dec_index(target.prev())+1;
-			c.context.ss.styles.splice(index,0,{
+
+			c.stylesheet().styles.splice(index,0,{
 				type: 'comment'
 				,text: ''
+				,styleSheet: c.stylesheet().url
 			});
-			c.context.ss.update_template();
+			c.stylesheet().update_template();
 	
 			jQuery('<div />',{'class':'grabber'}).insertAfter(target);
 			jQuery('<div />',{'class':'comment','contenteditable':'true'}).insertAfter(target).focus();
@@ -539,12 +572,13 @@ CSSEditPanel.prototype = extend(Firebug.Panel,
 			var target = jQuery(e.target)
 				,index = c.dec_index(target.prev())+1;
 	
-			c.context.ss.styles.splice(index,0,{
+			c.stylesheet().styles.splice(index,0,{
 				type: 'dec'
 				,selector: ''
 				,properties: []
+				,styleSheet: c.stylesheet().url
 			});
-			c.context.ss.update_template();
+			c.stylesheet().update_template();
 	
 			jQuery('<div />',{'class':'grabber'}).insertAfter(target);
 			var dec = jQuery('<div />',{'class':'dec','contenteditable':'false'}).insertAfter(target);
@@ -559,8 +593,8 @@ CSSEditPanel.prototype = extend(Firebug.Panel,
 		jQuery('.comment').live('delete_comment',function(e){
 			var target = jQuery(e.target);
 			var index = c.dec_index(target);
-			c.context.ss.styles[index].deleted = true;
-			c.context.ss.update_template();
+			c.stylesheet().styles[index].deleted = true;
+			c.stylesheet().update_template();
 			target.next('.grabber').andSelf().remove();
 		});
 	
@@ -609,7 +643,7 @@ CSSEditPanel.prototype = extend(Firebug.Panel,
 			if (e.which === 83 && e.metaKey === true){
 				e.preventDefault();
 		
-				c.context.ss.save();
+				c.stylesheet().save();
 			}
 		});
 		
@@ -738,12 +772,12 @@ CSSEditPanel.prototype = extend(Firebug.Panel,
 					jQuery(this).text(val);
 	
 					// Put cursor after the text we just added
-					var range = document.createRange();
+					var range = c.document.createRange();
 					var point = val.match(new RegExp('(.{0,'+pos+'})(\\s|^)([^\\s]*)'));
 					range.setStart(this.firstChild,point[0].length);
 					range.setEnd(this.firstChild,point[0].length);
 	
-					var sel = window.getSelection();
+					var sel = c.document.defaultView.getSelection();
 					sel.removeAllRanges();
 					sel.addRange(range);
 	
@@ -853,7 +887,7 @@ CSSEditPanel.prototype = extend(Firebug.Panel,
     },
 	
 	dec_index: function(item){
-		var dec = jQuery(item).closest('.dec');
+		var dec = jQuery(item).closest('.dec, .comment');
 		return dec.index()-dec.prevAll('.grabber').length;
 	},
 	
@@ -877,14 +911,15 @@ CSSEditPanel.prototype = extend(Firebug.Panel,
 		}
 		req.send(null);
 	},
-	
+		
 	display: function(url){
-		if (typeof c.context.stylesheets[url] === 'undefined'){
-			c.context.stylesheets[url] = new ss(url);
+		if (typeof c.context.stylesheet[url] === 'undefined'){
+			c.context.stylesheet[url] = new ss(url);
 		}
 	
 		// Generate css display if there were no errors
-		jQuery('#stylesheet', c.panelNode).html( jQuery.tmpl('css', {decs: c.context.stylesheets[url].styles}) ).sortable('refresh');
+		jQuery('#stylesheet', c.panelNode).html( jQuery.tmpl('css', {decs: c.context.stylesheet[url].styles}) ).sortable('refresh');
+		jQuery(c.panelNode).find('.wrap.filtered').removeClass('filtered');
 	
 		var sort_start;
 		// Value sorting
@@ -893,15 +928,13 @@ CSSEditPanel.prototype = extend(Firebug.Panel,
 			,handle: '.handle'
 			,update: function(e, ui){
 				var dec = c.dec_index(this);
-				c.context.ss.move_property(dec, sort_start, ui.item.index());
-				c.context.ss.update_element();
+				c.stylesheet().move_property(dec, sort_start, ui.item.index());
+				c.stylesheet().update_element();
 			}
 			,start: function(e, ui){
 				sort_start = ui.item.index();
 			}
 		});
-			
-		c.context.ss = c.context.stylesheets[url];
 	},
 	
 	expandRelative: function(url, base){
@@ -926,7 +959,6 @@ CSSEditPanel.prototype = extend(Firebug.Panel,
 	
 		// If the path is from root
 		if (url[0] == '/'){
-			//var absUrl = location.protocol + '//' + location.host + url;
 			return location.protocol + '//' + location.host + url;
 		}
 	
