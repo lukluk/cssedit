@@ -361,12 +361,10 @@ CSSEditPanel.prototype = extend(Firebug.Panel,
 						.button()
 						.bind('click',{property: target.closest('.property')}, function(e){
 							jQuery(e.target).parent().parent().remove();
-							var prop = e.data.property.index()
-								,dec = c.dec_index(e.data.property);
-							
-							dec = jQuery.tmplItem(target).data.decs[dec];
+							var tmplItem = jQuery.tmplItem(target);
+							var dec = tmplItem.parent.data;
 
-							dec.properties[prop].deleted = true;
+							tmplItem.data.deleted = true;
 							c.stylesheet(dec.styleSheet).update_template();
 							c.stylesheet(dec.styleSheet).update_element();
 							e.data.property.remove();
@@ -447,17 +445,16 @@ CSSEditPanel.prototype = extend(Firebug.Panel,
 	
 			// Else update object
 			else{
-				var index = c.dec_index(e.target);
-				var dec = jQuery.tmplItem(this).data.decs[index];
+				var dec = jQuery.tmplItem(this).data;
 				dec.selector = jQuery(e.target).text();
 				c.stylesheet(dec.styleSheet).update_element();
+				
 			}
 		});
 	
 		// Changing comment
 		jQuery('.comment').live('keyup',function(e){
-			var index = c.dec_index(e.target);
-			var comment = jQuery.tmplItem(this).data.decs[index];
+			var comment = jQuery.tmplItem(this).data;
 			comment.text = jQuery(e.target).html().replace(new RegExp('<br>', 'gi'), "\n");
 		});
 	
@@ -480,14 +477,12 @@ CSSEditPanel.prototype = extend(Firebug.Panel,
 				}
 			}
 			else{
-				var dec = c.dec_index(e.target)
-					,prop = jQuery(e.target).parent().index()
-					,type = jQuery(e.target).attr('class');
+				var type = jQuery(e.target).attr('class');
 					
-				var tmplItem = jQuery.tmplItem(this).data;
-				dec = jQuery.tmplItem(this).data.decs[dec];
+				var tmplItem = jQuery.tmplItem(this);
+				dec = tmplItem.parent.data;
 				
-				dec.properties[prop][type] = jQuery(e.target).text();
+				tmplItem.data[type] = jQuery(e.target).text();
 				c.stylesheet(dec.styleSheet).update_element();
 			}
 		});
@@ -495,15 +490,12 @@ CSSEditPanel.prototype = extend(Firebug.Panel,
 		// Auto remove empty properties
 		jQuery('.dec .property').live('focusout',function(e){
 			if(jQuery(e.target).closest('.property').text() === ''){
-				var prop = jQuery(e.target).closest('.property').index()
-					,dec = c.dec_index(e.target);
-	
 				jQuery(e.target).parent().remove();
 
-				var tmplItem = jQuery.tmplItem(this).data;
-				dec = jQuery.tmplItem(this).data.decs[dec];
+				var tmplItem = jQuery.tmplItem(this);
+				var dec = tmplItem.data;
 
-				dec.properties[prop].deleted = true;
+				tmplItem.data.deleted = true;
 				c.stylesheet(dec.styleSheet).update_template();
 				c.stylesheet(dec.styleSheet).update_element();
 			}
@@ -516,13 +508,12 @@ CSSEditPanel.prototype = extend(Firebug.Panel,
 	
 		// Enable/disable property
 		jQuery('.dec input[type="checkbox"]').live('change',function(e){
-			var dec = c.dec_index(e.target)
-				,prop = jQuery(e.target).parent().index()
-				,disabled = !e.target.checked
+			var disabled = !e.target.checked
 			
-			dec = jQuery.tmplItem(this).data.decs[dec];
+			var tmplItem = jQuery.tmplItem(this);
+			var dec = tmplItem.parent.data;
 			
-			dec.properties[prop].disabled = disabled;
+			tmplItem.data.disabled = disabled;
 			c.stylesheet(dec.styleSheet).update_element();
 		});
 		// Press insert to insert property at current location
@@ -532,31 +523,24 @@ CSSEditPanel.prototype = extend(Firebug.Panel,
 	
 		// Add property after e.target
 		jQuery('.properties').live('add_property',function(e){
-			var dec = c.dec_index(e.target);
 			var target = jQuery(e.target);
 			if (target.is('.properties')){
 				var prop = 0;
-				var wrap = jQuery('<div />',{'class':'property'}).appendTo(target);
 			}
 			else if (target.is('.property,.name,.value')){
 				var prop = jQuery(e.target).closest('.property').index()+1;
-				var wrap = jQuery('<div />',{'class':'property'}).insertAfter(target.parent());
-	
 			}
-			dec = jQuery.tmplItem(this).data.decs[dec];
-			dec.properties.splice(prop,0,{
+			var dec = jQuery.tmplItem(this);
+			dec.data.properties.splice(prop,0,{
 				name: ''
 				,value: ''
 				,disabled: false
 				,styleSheet: dec.styleSheet
 			});
-			c.stylesheet(dec.styleSheet).update_template();
-			c.stylesheet(dec.styleSheet).update_element();
-	
-			jQuery('<div />',{'class':'handle'}).appendTo(wrap);
-			jQuery('<input />',{'type': 'checkbox','checked':'checked'}).appendTo(wrap);
-			jQuery('<div />',{'class': 'name','contenteditable':'true'}).appendTo(wrap).focus();
-			jQuery('<div />',{'class': 'value','contenteditable':'true'}).appendTo(wrap);
+			dec.update();
+			c.stylesheet(dec.data.styleSheet).update_template();
+			c.stylesheet(dec.data.styleSheet).update_element();
+			jQuery(dec.nodes).find('.name:empty').focus();
 		});
 	
 		// Add comment after e.target
@@ -570,9 +554,9 @@ CSSEditPanel.prototype = extend(Firebug.Panel,
 				,styleSheet: c.stylesheet().url
 			});
 			c.stylesheet().update_template();
-	
-			jQuery('<div />',{'class':'grabber'}).insertAfter(target);
-			jQuery('<div />',{'class':'comment','contenteditable':'true'}).insertAfter(target).focus();
+			jQuery.tmplItem(this).update();
+			
+			jQuery(c.panelNode).find('.comment:empty').focus();
 		});
 	
 		// Add dec after e.target
@@ -599,11 +583,10 @@ CSSEditPanel.prototype = extend(Firebug.Panel,
 	
 		// Delete comment
 		jQuery('.comment').live('delete_comment',function(e){
-			var target = jQuery(e.target);
-			var index = c.dec_index(target);
-			c.stylesheet().styles[index].deleted = true;
+			var comment = jQuery.tmplItem(this);
+			comment.data.deleted = true;
 			c.stylesheet().update_template();
-			target.next('.grabber').andSelf().remove();
+			jQuery(this).next('.grabber').andSelf().remove();
 		});
 	
 		// Skip over checkboxes when tabbing through things
