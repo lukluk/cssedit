@@ -449,7 +449,9 @@ CSSEditPanel.prototype = extend(Firebug.Panel,
 				dec.selector = jQuery(e.target).text();
 				c.stylesheet(dec.styleSheet).update_element();
 				
-				if (c.filterView) c.filterView();
+				if (c.name === 'CSSEditHTMLPanel'){
+					c.filterView();
+				}
 			}
 		});
 	
@@ -485,6 +487,10 @@ CSSEditPanel.prototype = extend(Firebug.Panel,
 				
 				tmplItem.data[type] = jQuery(e.target).text();
 				c.stylesheet(dec.styleSheet).update_element();
+				
+				if (c.name === 'CSSEditHTMLPanel'){
+					c.styleOverridden();
+				}
 			}
 		});
 	
@@ -1092,7 +1098,6 @@ CSSEditHTMLPanel.prototype = extend(CSSEditPanel.prototype, {
 		
 		var matchedInheritedStyles = [];
 		var matchedStyleSheets = [];
-		//var trackedStyles = {};
 		for (var i = 0; i < inherited.length; i++){
 			var sheet = inherited[i][0],
 			    style = inherited[i][1];
@@ -1121,17 +1126,34 @@ CSSEditHTMLPanel.prototype = extend(CSSEditPanel.prototype, {
 			// Don't show inherited properties
 			inheritedHTML.find('.property:not(.'+Object.keys(this.inheritedStyleNames).join(', .')+')').remove();
 			
-			// Strike out overridden properties
-			panel.find('.property').each(function(i, e){
-				var name = jQuery(e).find('.name').text();
-			
-				jQuery(e).closest('.dec').nextAll('.property:has(.name:contains("'+name+'"))').addClass('overridden');
-			});
-			
 			for (var name in this.inheritedStyleNames){
 				panel.find('.'+name+':gt(0)').addClass('overridden');
 			}
 		}
+		
+		this.styleOverridden();
+	},
+	
+	styleOverridden: function(){
+		var panel = jQuery(c.panelNode);
+		// Strike out overridden properties
+		panel.find('.property').each(function(i, e){
+			var name = jQuery(e).find('.name').text();
+			
+			// Check for !important
+			var important = panel.find('.property:has(.name:contains("'+name+'") + .value:contains("!important"))');
+			if (important.length === 0){
+				// Just go based on order
+				panel.find('.property:has(.name:contains("'+name+'")):eq(0)').removeClass('overridden');
+				panel.find('.property:has(.name:contains("'+name+'")):gt(0)').addClass('overridden');
+			}
+			else{
+				// Strike out all properties, then unstrike the first !important
+				panel.find('.property:has(.name:contains("'+name+'"))').addClass('overridden');
+				important.first().removeClass('overridden');
+			}
+			
+		});
 	},
 	
 	getInheritedRules: function(element){
