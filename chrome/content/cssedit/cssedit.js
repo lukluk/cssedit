@@ -1136,9 +1136,13 @@ CSSEditHTMLPanel.prototype = extend(CSSEditPanel.prototype, {
 	
 	styleOverridden: function(){
 		var panel = jQuery(c.panelNode);
+
 		// Strike out overridden properties
+		var processed = {};
 		panel.find('.property').each(function(i, e){
 			var name = jQuery(e).find('.name').text();
+			if (processed[name] === true) return true;
+			else processed[name] = true;
 			
 			// Check for !important
 			var important = panel.find('.property:has(.name:contains("'+name+'") + .value:contains("!important"))');
@@ -1152,7 +1156,7 @@ CSSEditHTMLPanel.prototype = extend(CSSEditPanel.prototype, {
 				panel.find('.property:has(.name:contains("'+name+'"))').addClass('overridden');
 				important.first().removeClass('overridden');
 			}
-			
+			return true;
 		});
 	},
 	
