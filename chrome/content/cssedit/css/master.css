@@ -86,6 +86,7 @@ fieldset{
 
 .dec .selector, .dec .property, .dec .value{
     min-width:20px;
+	line-height: 8px;
 }
 
 [contenteditable]{
