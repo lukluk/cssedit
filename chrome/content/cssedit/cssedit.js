@@ -449,6 +449,7 @@ CSSEditPanel.prototype = extend(Firebug.Panel,
 				dec.selector = jQuery(e.target).text();
 				c.stylesheet(dec.styleSheet).update_element();
 				
+				if (c.filterView) c.filterView();
 			}
 		});
 	
@@ -1016,6 +1017,40 @@ CSSEditHTMLPanel.prototype = extend(CSSEditPanel.prototype, {
 	title: 'CSSEdit',
 	parentPanel: 'html',
 	
+	inheritedStyleNames: {
+		"border-collapse": 1,
+		"border-spacing": 1,
+		"border-style": 1,
+		"caption-side": 1,
+		"color": 1,
+		"cursor": 1,
+		"direction": 1,
+		"empty-cells": 1,
+		"font": 1,
+		"font-family": 1,
+		"font-size-adjust": 1,
+		"font-size": 1,
+		"font-style": 1,
+		"font-variant": 1,
+		"font-weight": 1,
+		"letter-spacing": 1,
+		"line-height": 1,
+		"list-style": 1,
+		"list-style-image": 1,
+		"list-style-position": 1,
+		"list-style-type": 1,
+		"opacity": 1,
+		"quotes": 1,
+		"text-align": 1,
+		"text-decoration": 1,
+		"text-indent": 1,
+		"text-shadow": 1,
+		"text-transform": 1,
+		"white-space": 1,
+		"word-spacing": 1,
+		"word-wrap": 1
+	},
+	
 	initialize: function() {
 		Firebug.Panel.initialize.apply(this, arguments);
 		Firebug.registerUIListener(this);
@@ -1024,32 +1059,92 @@ CSSEditHTMLPanel.prototype = extend(CSSEditPanel.prototype, {
 		if (typeof this.context.stylesheet === 'undefined') this.context.stylesheet = {};
 		if (typeof this.context.active_value === 'undefined') this.context.active_value = false;
 	},
-	
+		
 	onObjectSelected: function(node, context){
 		this.filterView(node);
 	},
 
 	filterView: function(element){
+		if (!element){
+			element = FirebugContext.getPanel('html').selection;
+		}
+		
 		var panel = jQuery(c.panelNode);
 		panel.find('.wrap').addClass('filtered');
 		
-		var styles = this.findStyles(element);
+		var styles = this.getElementRules(element)
+		var inherited = this.getInheritedRules(element);
+		
 		var matchedStyles = [];
 		var matchedStyleSheets = [];
+		var trackedStyles = {};
 		for (var i = 0; i < styles.length; i++){
 			var sheet = styles[i][0],
 			    style = styles[i][1];
 				
 			for (var x = 0; x < sheet.styles.length; x++){
-				if (sheet.styles[x].selector === style.selectorText){
-					matchedStyles.push(sheet.styles[x]);
+				if (typeof trackedStyles[ sheet.url + x ] === 'undefined' && sheet.styles[x].selector === style.selectorText){
+					trackedStyles[ sheet.url + x ] = true;
+					matchedStyles.splice(0,0,sheet.styles[x]);
 				}
 			}
 		}
-		panel.find('.stylesheet').html(jQuery.tmpl('css', {decs: matchedStyles}));		
+		
+		var matchedInheritedStyles = [];
+		var matchedStyleSheets = [];
+		//var trackedStyles = {};
+		for (var i = 0; i < inherited.length; i++){
+			var sheet = inherited[i][0],
+			    style = inherited[i][1];
+				
+			for (var x = 0; x < sheet.styles.length; x++){
+				if (typeof trackedStyles[ sheet.url + x ] === 'undefined' && sheet.styles[x].selector === style.selectorText){
+					trackedStyles[ sheet.url + x ] = true;
+					// Does it have at least one property that is inherited?
+					for (var j = 0; j < sheet.styles[x].properties.length; j++){
+						if (this.inheritedStyleNames[sheet.styles[x].properties[j].name] === 1){
+							matchedInheritedStyles.push(sheet.styles[x]);
+							break;
+						}
+					}
+				}
+			}
+		}
+		var stylesheet = panel.find('.stylesheet');
+		stylesheet.html('');
+		jQuery.tmpl('css', {decs: matchedStyles}).appendTo(stylesheet);
+		var inheritedHTML = jQuery.tmpl('css', {decs: matchedInheritedStyles}).appendTo(stylesheet);
+		
+		if (inheritedHTML.children().length > 1){
+			jQuery('<div />',{'class': 'notice'}).text('Inherited Styles').insertBefore(inheritedHTML);
+
+			// Don't show inherited properties
+			inheritedHTML.find('.property:not(.'+Object.keys(this.inheritedStyleNames).join(', .')+')').remove();
+			
+			// Strike out overridden properties
+			panel.find('.property').each(function(i, e){
+				var name = jQuery(e).find('.name').text();
+			
+				jQuery(e).closest('.dec').nextAll('.property:has(.name:contains("'+name+'"))').addClass('overridden');
+			});
+			
+			for (var name in this.inheritedStyleNames){
+				panel.find('.'+name+':gt(0)').addClass('overridden');
+			}
+		}
 	},
 	
-	findStyles: function(element){
+	getInheritedRules: function(element){
+		var parent = element.parentNode;
+		var rules = [];
+		if (parent && parent.nodeType == 1) {
+			jQuery.merge(rules, this.getInheritedRules(parent));
+			jQuery.merge(rules, this.getElementRules(parent));
+		}
+		return rules;
+	},
+	
+	getElementRules: function(element){
 		try {
 			inspectedRules = domUtils ? domUtils.getCSSStyleRules(element) : null;
 		} catch (exc) {}

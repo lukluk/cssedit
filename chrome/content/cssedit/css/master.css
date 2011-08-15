@@ -191,3 +191,38 @@ fieldset{
 #color_picker{
 	position: fixed !important;
 }
+
+.property.overridden .name, .property.overridden .value{
+	text-decoration: line-through;
+}
+
+.dec{
+	position: relative;
+}
+
+.dec .file{
+	display: none;
+	position: absolute;
+	top: 0;
+	right: 5px;
+	text-align: right;
+}
+.filtered .dec .file{
+	display: block;
+}
+
+.filtered .grabber{
+	height: 8px;
+}
+
+.notice{
+    border-bottom: 1px solid #000000;
+    float: right;
+    height: 14px;
+    overflow: visible;
+    padding: 0;
+    position: relative;
+    text-align: right;
+    top: -16px;
+    width: 100%;
+}
