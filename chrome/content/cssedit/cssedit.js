@@ -227,7 +227,13 @@ CSSEditPanel.prototype = extend(Firebug.Panel,
 		jQuery('<link />',{type: 'text/css',rel: 'stylesheet', href: 'chrome://cssedit/content/css/theme/jquery-ui-1.8.11.custom.css'}).prependTo(this.panelNode);
 		jQuery('<link />',{type: 'text/css',rel: 'stylesheet', href: 'chrome://cssedit/content/css/colorpicker.css'}).prependTo(this.panelNode);
 		
-		this.load('chrome://cssedit/content/templates/interface.html', function(data){
+		c.load('chrome://cssedit/content/templates/css_items.html', function(data){
+			data = jQuery(data);
+			jQuery.template('dec', data[0]);
+			jQuery.template('prop', data[1]);
+			
+		
+		c.load('chrome://cssedit/content/templates/interface.html', function(data){
 			jQuery.template('interface',data);
 			jQuery.tmpl('interface',{files: c.context.files, panel: c}).appendTo(c.panelNode);
 			
@@ -266,7 +272,9 @@ CSSEditPanel.prototype = extend(Firebug.Panel,
 					c.liveEvents();
 				}
 			});
+		});			
 		});
+
 		
 	},
 		

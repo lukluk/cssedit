@@ -1,0 +1,21 @@
+<script id="dec">
+<div class="grabber"></div>
+{{if type == "dec"}}
+<div class="dec" contenteditable="false">
+	<div class="selector" contenteditable="true">${selector}</div>
+	<div class="file">${styleSheet}</div>
+	<div class="properties">
+		{{tmpl(properties) 'prop'}}
+	</div>
+</div>
+{{else type == "comment"}}
+<div class="comment" contenteditable="true">${text}</div>
+{{/if}}
+</script><script id="prop">
+<div class="property ${name}">
+	<div class="handle"></div>
+	<input type="checkbox" {{if disabled === false}} checked="checked" {{/if}} />
+	<div class="name" contenteditable="true">${name}</div>
+	<div class="value" contenteditable="true">${value}</div>
+</div>
+</script>
