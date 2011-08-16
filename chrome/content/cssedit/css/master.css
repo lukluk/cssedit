@@ -206,6 +206,11 @@ fieldset{
 	top: 0;
 	right: 5px;
 	text-align: right;
+	color: #00F;
+}
+.dec .file:hover{
+	text-decoration: underline;
+	cursor: pointer;
 }
 .filtered .dec .file{
 	display: block;

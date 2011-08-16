@@ -882,7 +882,29 @@ CSSEditPanel.prototype = extend(Firebug.Panel,
 				).trigger('update');
 			}
 		});
+		
+		jQuery('.file').live('click', function(){
+			var tmplItem = jQuery.tmplItem(this);
+			Firebug.chrome.switchToPanel(FirebugContext, 'CSSEdit');
+			c.display(tmplItem.data.styleSheet);
+			
+			var panel = FirebugContext.getPanel('CSSEdit');
+			panel.findDec(tmplItem.data);
+		});
     },
+	
+	findDec: function(dec){
+		var styles = c.stylesheet().styles;
+		//console.log(styles);
+		for (var i in styles){
+			if (styles[i] === dec){
+				var item = jQuery('.dec, .comment')[i];
+				item.scrollIntoView();
+				jQuery(item).css({backgroundColor: '#FFF793'}).animate({backgroundColor: '#FFF'}, 2000);
+				break;
+			}
+		}
+	},
 	
 	dec_index: function(item){
 		var dec = jQuery(item).closest('.dec, .comment');
@@ -914,6 +936,10 @@ CSSEditPanel.prototype = extend(Firebug.Panel,
 		if (typeof c.context.stylesheet[url] === 'undefined'){
 			c.context.stylesheet[url] = new ss(url);
 		}
+		var select = jQuery('#cssedit_file');
+		var select_index = select.find('option:contains("'+url+'")').index();
+		select.val(select_index);
+		
 	
 		// Generate css display if there were no errors
 		jQuery('#stylesheet', c.panelNode).html( jQuery.tmpl('css', {decs: c.context.stylesheet[url].styles}) ).sortable('refresh');
