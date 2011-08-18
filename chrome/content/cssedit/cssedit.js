@@ -579,12 +579,15 @@ CSSEditPanel.prototype = extend(Firebug.Panel,
 			});
 			c.stylesheet().update_template();
 	
-			jQuery('<div />',{'class':'grabber'}).insertAfter(target);
-			var dec = jQuery('<div />',{'class':'dec','contenteditable':'false'}).insertAfter(target);
-	
-			jQuery('<div />',{'class':'selector','contenteditable':'true'}).appendTo(dec).focus();
-	
-			var props = jQuery('<div />',{'class':'properties'}).appendTo(dec);
+			//jQuery('<div />',{'class':'grabber'}).insertAfter(target);
+			//var dec = jQuery('<div />',{'class':'dec','contenteditable':'false'}).insertAfter(target);
+			//
+			//jQuery('<div />',{'class':'selector','contenteditable':'true'}).appendTo(dec).focus();
+			//
+			//var props = jQuery('<div />',{'class':'properties'}).appendTo(dec);
+			
+			jQuery.tmplItem(e.target).parent.update();
+			jQuery('.selector:empty').first().focus();
 	
 		});
 	
