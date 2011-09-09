@@ -1194,11 +1194,11 @@ CSSEditHTMLPanel.prototype = extend(CSSEditPanel.prototype, {
 			else processed[name] = true;
 			
 			// Check for !important
-			var important = panel.find('.property:has(.name:contains("'+name+'") + .value:contains("!important"))');
+			var important = panel.find('.property:has(input:checkbox:checked + .name:contains("'+name+'") + .value:contains("!important"))');
 			if (important.length === 0){
 				// Just go based on order
-				panel.find('.property:has(.name:contains("'+name+'")):eq(0)').removeClass('overridden');
-				panel.find('.property:has(.name:contains("'+name+'")):gt(0)').addClass('overridden');
+				panel.find('.property:has(.name:contains("'+name+'")):eq(0):not(:has(input:checkbox[checked]))').removeClass('overridden');
+				panel.find('.property:has(.name:contains("'+name+'")):gt(0):not(:has(input:checkbox[checked]))').addClass('overridden');
 			}
 			else{
 				// Strike out all properties, then unstrike the first !important
