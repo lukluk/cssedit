@@ -233,46 +233,53 @@ CSSEditPanel.prototype = extend(Firebug.Panel,
 			jQuery.template('prop', data[1]);
 			
 		
-		c.load('chrome://cssedit/content/templates/interface.html', function(data){
-			jQuery.template('interface',data);
-			jQuery.tmpl('interface',{files: c.context.files, panel: c}).appendTo(c.panelNode);
-			
-			jQuery(c.panelNode)
-			.find('.save_as').button({icons: {primary: 'ui-icon-folder-open'}, text: false})
-			.next('.save').button({icons: {primary: 'ui-icon-disk'}, text: false})
-			.next('.sort').button({icons: { primary: 'ui-icon ui-icon-arrowthick-2-n-s' }, text: false});
-			
-			jQuery(c.panelNode).find('#color_picker').ColorPicker({
-			flat: true
-			,onChange: function(hsb,hex,rgb){
-				if (c.context.active_value){
-					c.context.active_value.trigger('update_color', arguments);
-				}
-			}
-		})
-		.hide()
-		.bind('mouseleave', function(e){
-			jQuery(this).hide();
-		});;
-
-		
-			c.load('chrome://cssedit/content/templates/css.html', function(data){
-				jQuery.template('css', data);
-
-				if (c.name === 'CSSEdit'){
-					// Auto display the first CSS file
-					c.display(c.context.files[0]);
-				}
-				else if (c.name === 'CSSEditHTMLPanel'){
-					c.filterView(FirebugContext.getPanel('html').selection);
-				}
-			
-				if (setup){
-					setup = false;
-					c.liveEvents();
-				}
-			});
-		});			
+			c.load('chrome://cssedit/content/templates/interface.html', function(data){
+				jQuery.template('interface',data);
+				jQuery.tmpl('interface',{files: c.context.files, panel: c}).appendTo(c.panelNode);
+				
+				jQuery(c.panelNode)
+				.find('.save_as').button({icons: {primary: 'ui-icon-folder-open'}, text: false})
+				.next('.save').button({icons: {primary: 'ui-icon-disk'}, text: false})
+				.next('.sort').button({icons: { primary: 'ui-icon ui-icon-arrowthick-2-n-s' }, text: false});
+				
+				jQuery(c.panelNode).find('#color_picker').ColorPicker({
+					flat: true
+					,onChange: function(hsb,hex,rgb){
+						if (c.context.active_value){
+							c.context.active_value.trigger('update_color', arguments);
+						}
+					}
+				})
+				.hide()
+				.bind('mouseleave', function(e){
+					jQuery(this).hide();
+				});
+				// ctrl+s saves current stylesheet
+				jQuery(c.panelNode.ownerDocument).bind('keydown', function(e){
+					if (e.which === 83 && e.metaKey === true && Firebug.currentContext.panelName === 'CSSEdit'){
+						console.log('save');
+						e.preventDefault();
+				
+						c.stylesheet().save();
+					}
+				});
+				c.load('chrome://cssedit/content/templates/css.html', function(data){
+					jQuery.template('css', data);
+	
+					if (c.name === 'CSSEdit'){
+						// Auto display the first CSS file
+						c.display(c.context.files[0]);
+					}
+					else if (c.name === 'CSSEditHTMLPanel'){
+						c.filterView(FirebugContext.getPanel('html').selection);
+					}
+				
+					if (setup){
+						setup = false;
+						c.liveEvents();
+					}
+				});
+			});			
 		});
 
 		
@@ -332,7 +339,7 @@ CSSEditPanel.prototype = extend(Firebug.Panel,
 		});
 	
 		// Setup events
-	
+
 		// Right clicking things
 		jQuery('#stylesheet').live('contextmenu mousedown mouseup', function(e){
 			if (e.which === 3){
@@ -638,16 +645,17 @@ CSSEditPanel.prototype = extend(Firebug.Panel,
 				sel.addRange(range);
 			}
 		});
-	
+		
 		// ctrl+s saves current stylesheet
-		jQuery(c.panelNode).bind('keydown', function(e){
-			if (e.which === 83 && e.metaKey === true){
+		jQuery(c.panelNode.ownerDocument).bind('keydown', function(e){
+			if (e.which === 83 && e.metaKey === true && Firebug.currentContext.panelName === 'CSSEdit'){
+				console.log('save');
 				e.preventDefault();
 		
 				c.stylesheet().save();
 			}
 		});
-		
+	
 		// Property hinting
 		jQuery('.dec .property .name').live('keyup show_hints', function(e){
 			// Don't do anything if arrow down/up or tab
