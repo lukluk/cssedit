@@ -862,10 +862,16 @@ CSSEditPanel.prototype = extend(Firebug.Panel,
 			
 			if(color){
 				color_pos = offset;
-				jQuery(c.panelNode).find('#color_picker').ColorPickerSetColor(expandColor(color[0])).show().css({
+				var picker = jQuery(c.panelNode).find('#color_picker').show();
+				var top = e.clientY + jQuery('body').scrollTop() + 10;
+				if (top + picker.height() >= jQuery(c.document).height()){
+					top -= picker.height()+20;
+				}
+				
+				picker.ColorPickerSetColor(expandColor(color[0])).show().css({
 					position: 'absolute'
 					,left: e.clientX + 10
-					,top: e.clientY + jQuery('body').scrollTop() + 10
+					,top: top
 				});
 			}
 		
