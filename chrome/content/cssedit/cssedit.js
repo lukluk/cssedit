@@ -142,13 +142,19 @@ Firebug.CSSEditModel = extend(Firebug.Module, {
 	
 	showPanel: function(browser, panel){
 		if (panel.name === 'CSSEdit' || panel.name === 'CSSEditHTMLPanel'){
+			
 			c = panel;
 			if(panel.panelNode.children.length === 0){
 				panel.render();
 				panel.setupDB();
 			}
 			else{
-				panel.refreshView();
+				if(c.jQuery('#stylesheet').children().length === 0){
+					c.render();
+				}
+				else{
+					c.refreshView();
+				}
 			}
 			
 			if(!panel.panelBrowser.contentWindow.jQuery){
@@ -184,7 +190,7 @@ CSSEditPanel.prototype = extend(Firebug.Panel,
 		if (typeof this.context.stylesheet === 'undefined') this.context.stylesheet = {};
 		if (typeof this.context.active_value === 'undefined') this.context.active_value = false;
 	},
-		
+	
 	destroy: function(){
 		Firebug.Panel.destroy.apply(this, arguments);
 	},
