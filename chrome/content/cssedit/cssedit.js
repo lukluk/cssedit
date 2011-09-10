@@ -900,15 +900,22 @@ CSSEditPanel.prototype = extend(Firebug.Panel,
 			
 			if(color){
 				color_pos = offset;
-				var picker = jQuery(c.panelNode).find('#color_picker').show();
-				var top = e.clientY + jQuery('body').scrollTop() + 10;
+				var picker = jQuery(c.panelNode).find('#color_picker').show()
+					,top   = e.clientY + jQuery('body').scrollTop() + 10
+					,left  = e.clientX + 10;
 				if (top + picker.height() >= jQuery(c.document).height()){
 					top -= picker.height()+20;
 				}
 				
+				// Did we hit the top?
+				if(top < 0){
+					left += 20;
+					top += picker.height()/2;
+				}
+				
 				picker.ColorPickerSetColor(expandColor(color[0])).show().css({
 					position: 'absolute'
-					,left: e.clientX + 10
+					,left: left
 					,top: top
 				});
 			}
