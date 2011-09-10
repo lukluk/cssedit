@@ -432,6 +432,30 @@ CSSEditPanel.prototype = extend(Firebug.Panel,
 						})
 						.appendTo(menu);
 					}
+					
+					else if (target.is('.selector')){
+						var menu = jQuery('<div />',{'class':'cssedit_menu'})
+						.css({position: 'fixed', left: e.clientX-15, top: e.clientY-15})
+						.appendTo('body')
+						.mouseleave(function(e){
+							jQuery(this).remove();
+						});
+	
+						jQuery('<a />').text('Delete deceleration')
+						.appendTo(menu)
+						.button()
+						.bind('click',{dec: target.closest('.dec')}, function(e){
+							jQuery(e.target).parent().parent().remove();
+							
+							var dec = jQuery.tmplItem(e.data.dec).data;
+							dec.deleted = true;
+
+							c.stylesheet(dec.styleSheet).update_template();
+							c.stylesheet(dec.styleSheet).update_element();
+							e.data.dec.prev('.grabber').remove();
+							e.data.dec.remove();
+						});
+					}
 				}
 			}
 		});
@@ -1535,6 +1559,16 @@ ss.fn.update_template = function(){
 			var regex = ''
 			+ '/\\*\\$property'+e.index+'\\*/'
 			+ '\\s*';
+			template = template.replace(new RegExp(regex), '');
+
+			obj.splice(i,1);
+		}
+		else if (e.type === 'dec' && e.deleted === true){
+			console.log('here');
+			var regex = ''
+			+ '(\\$selector' + e.selector_index +')'
+			+ '([^}]+})'
+			+ '(\\s*)';
 			template = template.replace(new RegExp(regex), '');
 
 			obj.splice(i,1);
