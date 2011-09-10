@@ -1167,15 +1167,14 @@ CSSEditHTMLPanel.prototype = extend(CSSEditPanel.prototype, {
 		for (var i = 0; i < styles.length; i++){
 			var sheet = styles[i][0],
 			    style = styles[i][1];
-				
+
 			for (var x = 0; x < sheet.styles.length; x++){
-				if (typeof trackedStyles[ sheet.url + x ] === 'undefined' && sheet.styles[x].selector === style.selectorText){
+				if (typeof trackedStyles[ sheet.url + x ] === 'undefined' && sheet.styles[x].selector && sheet.styles[x].selector.replace(/\s+/g,' ') === style.selectorText){
 					trackedStyles[ sheet.url + x ] = true;
 					matchedStyles.splice(0,0,sheet.styles[x]);
 				}
 			}
 		}
-		
 		var matchedInheritedStyles = [];
 		var matchedStyleSheets = [];
 		for (var i = 0; i < inherited.length; i++){
