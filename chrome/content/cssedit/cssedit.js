@@ -152,8 +152,11 @@ Firebug.CSSEditModel = extend(Firebug.Module, {
 				if(c.jQuery('#stylesheet').children().length === 0){
 					c.render();
 				}
-				else{
+				else if(panel.name === 'CSSEdit'){
 					c.refreshView();
+				}
+				else if (panel.name === 'CSSEditHTMLPanel'){
+					c.filterView(Firebug.currentContext.getPanel('html').selection);
 				}
 			}
 			
