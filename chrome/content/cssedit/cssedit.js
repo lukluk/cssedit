@@ -147,6 +147,10 @@ Firebug.CSSEditModel = extend(Firebug.Module, {
 			if(panel.panelNode.children.length === 0){
 				panel.render();
 				panel.setupDB();
+
+				if (panel.name === 'CSSEditHTMLPanel'){
+					c.filterView(Firebug.currentContext.getPanel('html').selection);
+				}
 			}
 			else{
 				if(c.jQuery('#stylesheet').children().length === 0){
@@ -173,7 +177,7 @@ Firebug.CSSEditModel = extend(Firebug.Module, {
 	
 	showSidePanel: function(browser, panel){
 		this.showPanel.apply(this, arguments);
-		panel.filterView(FirebugContext.getPanel('html').selection);
+		panel.filterView(Firebug.currentContext.getPanel('html').selection);
 	}
 });
 
@@ -280,7 +284,7 @@ CSSEditPanel.prototype = extend(Firebug.Panel,
 						c.display(c.context.files[0]);
 					}
 					else if (c.name === 'CSSEditHTMLPanel'){
-						c.filterView(FirebugContext.getPanel('html').selection);
+						c.filterView(Firebug.currentContext.getPanel('html').selection);
 					}
 				
 					if (setup){
@@ -1156,7 +1160,7 @@ CSSEditHTMLPanel.prototype = extend(CSSEditPanel.prototype, {
 
 	filterView: function(element){
 		if (!element){
-			element = FirebugContext.getPanel('html').selection;
+			element = Firebug.currentContext.getPanel('html').selection;
 		}
 		
 		var panel = jQuery(c.panelNode);
