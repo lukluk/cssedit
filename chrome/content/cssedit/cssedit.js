@@ -938,11 +938,12 @@ CSSEditPanel.prototype = extend(Firebug.Panel,
 		});
 		
 		jQuery('.file').live('click', function(){
+			console.log('.file');
 			var tmplItem = jQuery.tmplItem(this);
-			Firebug.chrome.switchToPanel(FirebugContext, 'CSSEdit');
+			Firebug.chrome.switchToPanel(Firebug.currentContext, 'CSSEdit');
 			c.display(tmplItem.data.styleSheet);
 			
-			var panel = FirebugContext.getPanel('CSSEdit');
+			var panel = Firebug.currentContext.getPanel('CSSEdit');
 			panel.findDec(tmplItem.data);
 		});
     },
