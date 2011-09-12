@@ -468,12 +468,12 @@ CSSEditPanel.prototype = extend(Firebug.Panel,
 		});
 	
 		// Prevent new lines
-		jQuery('.dec').find('.selector, .value, .property, .name').live('keydown keyup', function(e){
+		jQuery('.dec').find('.value, .property, .name').live('keydown keyup', function(e){
 			if(e.which === 13){
 				e.preventDefault();
 			}
 		});
-	
+
 		jQuery('.dec .selector').live('keyup', function(e){
 			// Pressing enter on a selector for a dec with no properties adds
 			// a property if were not accepting a code hint
@@ -486,13 +486,12 @@ CSSEditPanel.prototype = extend(Firebug.Panel,
 					jQuery(e.target).parent().find('.properties').trigger('add_property');
 				}
 			}
-	
+			
 			// Else update object
 			else{
 				var dec = jQuery.tmplItem(this).data;
-				dec.selector = jQuery(e.target).text();
+				dec.selector = jQuery(e.target).html().replace(new RegExp('<br>', 'gi'), "\n");			
 				c.stylesheet(dec.styleSheet).update_element();
-				
 				if (c.name === 'CSSEditHTMLPanel'){
 					c.filterView();
 				}

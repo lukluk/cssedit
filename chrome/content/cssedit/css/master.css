@@ -86,6 +86,7 @@ fieldset{
 
 .selector{
 	display: inline;
+	white-space: pre;
 }
 
 .dec .selector, .dec .property, .dec .value{
@@ -120,7 +121,7 @@ fieldset{
 	font-size: 12px;
 }
 
-.dec br{
+.dec .properties br{
 	display:none;
 }
 
