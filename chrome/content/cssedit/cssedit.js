@@ -1316,6 +1316,7 @@ var ss = function(url){
 
 	// Setup everything
 	this.parse();
+	this.update_lines();
 	this.update_element();
 
 	// Remove link to original stylesheet
@@ -1685,6 +1686,7 @@ ss.fn.update_template = function(){
 	this.indexes.prop     = prop_index;
 	this.indexes.value    = value_index;
 	this.template         = template;
+	this.update_lines();
 
 	return true;
 }
@@ -1974,6 +1976,40 @@ ss.fn.move_property = function(dec, from, to){
 	this.template = template;
 	return true;
 }
+
+ss.fn.update_lines = function(){
+	var obj = this.styles;
+	var template = this.template;
+
+	var total_selector = 0;
+
+	// Start with replacing known values
+	// Keep track of new values too, we will be dealing with those next
+	var stylesheet = template;
+	for (i in obj){
+		var e = obj[i];
+		
+		if(e.type === 'dec'){
+			var regex = new RegExp(''
+				+ '([^]*)\\$selector'+e.selector_index
+			,'g');
+
+			var matches = template.match(regex)[0].match(/\n/g);
+			var count = (matches === null ? 1 : matches.length+1);
+			var selector_count = e.selector.match(/\n/g);
+			selector_count = (selector_count === null ? 0 : selector_count.length);
+			count += total_selector;
+			total_selector += selector_count;
+			
+			e.line = count;
+		}
+		else if (e.type === 'comment'){
+			var matches = e.text.match(/\n/g);
+			total_selector += (matches === null ? 0 : matches.length);
+		}
+	}
+}
+
 var expandColor = function(color){
 	if (color[0] === '#' && color.length == 4){
 		return color.replace(/#([\dABCDEF])([\dABCDEF])([\dABCDEF])/i, '#$1$1$2$2$3$3');

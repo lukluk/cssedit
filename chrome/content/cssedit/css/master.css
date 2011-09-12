@@ -204,16 +204,17 @@ fieldset{
 	position: relative;
 }
 
-.dec .file{
+.dec .file, .dec .line{
 	display: none;
 	text-align: right;
 	color: #00F;
+	padding-left: 5px;
 }
 .dec .file:hover{
 	text-decoration: underline;
 	cursor: pointer;
 }
-.filtered .dec .file{
+.filtered .dec .file, .dec .line{
 	display: inline;
 	float: right;
 }
