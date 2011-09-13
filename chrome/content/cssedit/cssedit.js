@@ -221,6 +221,8 @@ CSSEditPanel.prototype = extend(Firebug.Panel,
 
 		// Build regex to match all known colors
 		match_colors = new RegExp('(#[A-z0-9]{3}\\b|#[A-z0-9]{6}\\b|#[A-z0-9]{8}\\b|rgba\\([0-9]{1,3},[0-9]{1,3},[0-9]{1,3},\\d?(\\.\\d+)?\\)|rgb\\([0-9]{1,3},[0-9]{1,3},[0-9]{1,3}\\)' + '|' + c.hints.keywords.color.join('|') + ')', 'i');
+		
+		delete hints;
 	
 		// Find CSS files that we will be working with.
 		// CSS files will be limited by same-origin policy so make sure they are
@@ -696,11 +698,9 @@ CSSEditPanel.prototype = extend(Firebug.Panel,
 		jQuery('.dec .property .name').live('keyup show_hints', function(e){
 			// Don't do anything if arrow down/up or tab
 			if ([40, 9, 38, 16].indexOf(e.which) !== -1) return false;
-	
-			if(hints) hints.children().remove();
-			else{
-				hints = jQuery('<ul />',{'id':'hints'}).appendTo('#stylesheet');
-			}
+			
+			if(hints) hints.remove();
+			hints = jQuery('<ul />',{'id':'hints'}).appendTo('#stylesheet');
 	
 			if(String.fromCharCode(e.which).match(/[A-z-]/) || e.type === 'show_hints' || (e.which === 32 && e.metaKey === true) || e.which === 17){
 				var val = jQuery(e.target).text()
