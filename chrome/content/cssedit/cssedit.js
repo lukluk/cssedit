@@ -1176,7 +1176,7 @@ CSSEditHTMLPanel.prototype = extend(CSSEditPanel.prototype, {
 			    style = styles[i][1];
 
 			for (var x = 0; x < sheet.styles.length; x++){
-				if (typeof trackedStyles[ sheet.url + x ] === 'undefined' && sheet.styles[x].selector && sheet.styles[x].selector.replace(/\s+/g,' ') === style.selectorText){
+				if (typeof trackedStyles[ sheet.url + x ] === 'undefined' && sheet.styles[x].selector && jQuery.trim(sheet.styles[x].selector.replace(/,/g, ', ').replace(/\s+/g,' ')) === jQuery.trim(style.selectorText)){
 					trackedStyles[ sheet.url + x ] = true;
 					matchedStyles.splice(0,0,sheet.styles[x]);
 				}
