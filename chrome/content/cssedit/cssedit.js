@@ -533,7 +533,7 @@ CSSEditPanel.prototype = extend(Firebug.Panel,
 				tmplItem.data[type] = jQuery(e.target).text();
 				c.stylesheet(dec.styleSheet).update_element();
 				
-				if (c.name === 'CSSEditHTMLPanel'){
+				if (c.name === 'CSSEditHTMLPanel' && ($(this).is('.name') || tmplItem.data[type].match('!important') !== null)){
 					c.styleOverridden();
 				}
 			}
@@ -1979,9 +1979,9 @@ ss.fn.move_property = function(dec, from, to){
 ss.fn.update_lines = function(){
 	var obj = this.styles;
 	var template = this.template;
-
+	
 	var total_selector = 0;
-
+	
 	// Start with replacing known values
 	// Keep track of new values too, we will be dealing with those next
 	var stylesheet = template;
@@ -1991,8 +1991,8 @@ ss.fn.update_lines = function(){
 		if(e.type === 'dec'){
 			var regex = new RegExp(''
 				+ '([^]*)\\$selector'+e.selector_index
-			,'g');
-
+			);
+			
 			var matches = template.match(regex)[0].match(/\n/g);
 			var count = (matches === null ? 1 : matches.length+1);
 			var selector_count = e.selector.match(/\n/g);
