@@ -145,8 +145,35 @@ Firebug.CSSEditModel = extend(Firebug.Module, {
 			
 			c = panel;
 			if(panel.panelNode.children.length === 0){
-				panel.render();
 				panel.setupDB();
+
+				var url = window.content.location.toString();
+				var db = c.getDB();
+				var query = db.createStatement("SELECT * FROM `websites` WHERE `url` = :url LIMIT 1");
+				query.params.url = url;
+				if (query.executeStep()){
+					panel.render(query.row.file, query.row.scroll);
+				}
+				else panel.render();
+
+				window.content.addEventListener('beforeunload', function(e){
+					var url = window.content.location.toString();
+					var db = c.getDB();
+					var query = db.createStatement("SELECT * FROM `websites` WHERE `url` = :url LIMIT 1");
+					query.params.url = url;
+					
+					if (query.executeStep()){
+						var query = db.createStatement("UPDATE `websites` SET `file` = :file, `scroll` = :scroll WHERE `url` = :url");
+					}
+					else{
+						var query = db.createStatement("INSERT INTO `websites` (`url`, `file`, `scroll`) VALUES (:url, :file, :scroll)");
+					}
+					query.params.url = url;
+					query.params.file = c.stylesheet().url;
+					query.params.scroll = c.panelNode.scrollTop;
+					query.execute();
+				}, true);
+				
 
 				if (panel.name === 'CSSEditHTMLPanel'){
 					c.filterView(Firebug.currentContext.getPanel('html').selection);
@@ -214,7 +241,7 @@ CSSEditPanel.prototype = extend(Firebug.Panel,
 		jQuery = this.panelBrowser.contentWindow.jQuery;
 	},
 	
-	render: function() {
+	render: function(file, scroll) {
 		if (setup){
 			this.addScripts();
 		}
@@ -283,7 +310,12 @@ CSSEditPanel.prototype = extend(Firebug.Panel,
 	
 					if (c.name === 'CSSEdit'){
 						// Auto display the first CSS file
-						c.display(c.context.files[0]);
+						if(file && jQuery.inArray(file, c.context.files) !== -1){
+							c.display(file, scroll);
+						}
+						else{
+							c.display(c.context.files[0]);
+						}
 					}
 					else if (c.name === 'CSSEditHTMLPanel'){
 						c.filterView(Firebug.currentContext.getPanel('html').selection);
@@ -993,7 +1025,7 @@ CSSEditPanel.prototype = extend(Firebug.Panel,
 		req.send(null);
 	},
 		
-	display: function(url){
+	display: function(url, scroll){
 		if (typeof c.context.stylesheet[url] === 'undefined'){
 			c.context.stylesheet[url] = new ss(url);
 		}
@@ -1020,6 +1052,8 @@ CSSEditPanel.prototype = extend(Firebug.Panel,
 				sort_start = ui.item.index();
 			}
 		});
+		
+		if(scroll) jQuery(c.panelNode).scrollTop(scroll);
 	},
 	
 	expandRelative: function(url, base){
@@ -1044,7 +1078,7 @@ CSSEditPanel.prototype = extend(Firebug.Panel,
 	
 		// If the path is from root
 		if (url[0] == '/'){
-			return window.content.document.baseURI + url;
+			return window.content.location.protocol + '//' + window.content.location.hostname + url;
 		}
 	
 		var  path      = base.path.split('/')
@@ -1099,6 +1133,8 @@ CSSEditPanel.prototype = extend(Firebug.Panel,
 	setupDB: function(){
 		var db = this.getDB();
 		var statement = db.createStatement('CREATE TABLE IF NOT EXISTS `files` (`file` TEXT, `localFile` TEXT, PRIMARY KEY (`file`))');
+		statement.execute();
+		var statement = db.createStatement('CREATE TABLE IF NOT EXISTS `websites` (`url` TEXT, `file` TEXT, `scroll` INT)');
 		statement.execute();
 	}
 
