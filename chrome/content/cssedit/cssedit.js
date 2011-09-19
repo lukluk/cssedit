@@ -565,7 +565,7 @@ CSSEditPanel.prototype = extend(Firebug.Panel,
 				tmplItem.data[type] = jQuery(e.target).text();
 				c.stylesheet(dec.styleSheet).update_element();
 				
-				if (c.name === 'CSSEditHTMLPanel' && ($(this).is('.name') || tmplItem.data[type].match('!important') !== null)){
+				if (c.name === 'CSSEditHTMLPanel' && (jQuery(this).is('.name') || tmplItem.data[type].match('!important') !== null)){
 					c.styleOverridden();
 				}
 			}
@@ -976,7 +976,6 @@ CSSEditPanel.prototype = extend(Firebug.Panel,
 		});
 		
 		jQuery('.file').live('click', function(){
-			console.log('.file');
 			var tmplItem = jQuery.tmplItem(this);
 			Firebug.chrome.switchToPanel(Firebug.currentContext, 'CSSEdit');
 			c.display(tmplItem.data.styleSheet);
@@ -993,6 +992,8 @@ CSSEditPanel.prototype = extend(Firebug.Panel,
 			if (styles[i] === dec){
 				var item = jQuery('.dec, .comment')[i];
 				item.scrollIntoView();
+				// Scroll down a little more because of header
+				jQuery(c.panelNode).scrollTop(jQuery(c.panelNode).scrollTop() - 60);
 				jQuery(item).css({backgroundColor: '#FFF793'}).animate({backgroundColor: '#FFF'}, 2000);
 				break;
 			}
