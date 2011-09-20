@@ -431,6 +431,23 @@ CSSEditPanel.prototype = extend(Firebug.Panel,
 						.bind('click',{target: target}, function(e){
 							e.data.target.trigger('add_property');
 						});
+						var name = target.prev('.name').text().toLowerCase();
+						if(name === 'background-image' || name === 'background'){
+							// Find url
+							var url = target.text().match(/url\(('|"|)([^)'"]+)('|"|)\)/);
+							
+							if(url !== null){
+								jQuery('<a />').text('Open image in new tab')
+								.appendTo(menu)
+								.button()
+								.bind('click',{url: url}, function(e){
+									var url = url = c.expandRelative(e.data.url[2], c.expandRelative(c.stylesheet().url).match(/.*\//)[0]);
+									
+									window.content.open(url);
+		
+								});
+							}
+						}
 					}
 	
 					// Show menu to insert dec/comment
