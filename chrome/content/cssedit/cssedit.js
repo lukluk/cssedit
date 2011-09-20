@@ -983,6 +983,53 @@ CSSEditPanel.prototype = extend(Firebug.Panel,
 			var panel = Firebug.currentContext.getPanel('CSSEdit');
 			panel.findDec(tmplItem.data);
 		});
+		
+		// Image preview
+		jQuery('.value').live('mousemove mouseleave mouseenter', function(e){
+			// Is this the value for background-image or background?
+			var name = jQuery(this).prev('.name').text().toLowerCase();
+			if(name === 'background-image' || name === 'background'){
+				// Find url
+				var url = jQuery(this).text().match(/url\(('|"|)([^)'"]+)('|"|)\)/);
+				if(url !== null){
+					var img = jQuery('#image_preview');
+					if(e.type === 'mouseenter'){
+						url = c.expandRelative(url[2], c.expandRelative(c.stylesheet().url).match(/.*\//)[0]);
+						img.show().find('img').attr('src', url).css({
+							'max-width': jQuery(c.document).width() - 10 - e.clientX,
+							'max-height': jQuery(c.document).height() - 20
+						});
+					}
+					else if (e.type === 'mousemove'){
+						var top   = e.clientY + jQuery('body').scrollTop() + 10
+							,left = e.clientX + 10;
+						
+						if (top + img.height() >= jQuery(c.document).height()){
+							top -= img.height()+20;
+						}
+						
+						// Did we hit the top?
+						if(top < 0){
+							left += 20;
+							top = (jQuery(c.document).height() - img.height()) / 2;
+						}
+
+						img.css({
+							left: left
+							,top: top
+						})
+						.find('img')
+						.css({
+							'max-width': jQuery(c.document).width() - (left + 40),
+							'max-height': jQuery(c.document).height() - 40
+						});
+					}
+					else if(e.type === 'mouseleave'){
+						img.hide().find('img').attr('src', '');
+					}
+				}
+			}
+		});
     },
 	
 	findDec: function(dec){

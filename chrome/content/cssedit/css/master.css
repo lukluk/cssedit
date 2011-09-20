@@ -235,3 +235,10 @@ fieldset{
     top: -16px;
     width: 100%;
 }
+
+#image_preview{
+	padding: 5px;
+	position: fixed;
+	display: none;
+	background: #808080; /* 50 gray */
+}
