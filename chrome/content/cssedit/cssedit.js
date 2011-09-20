@@ -725,16 +725,6 @@ CSSEditPanel.prototype = extend(Firebug.Panel,
 			}
 		});
 		
-		// ctrl+s saves current stylesheet
-		jQuery(c.panelNode.ownerDocument).bind('keydown', function(e){
-			if (e.which === 83 && e.metaKey === true && Firebug.currentContext.panelName === 'CSSEdit'){
-				console.log('save');
-				e.preventDefault();
-		
-				c.stylesheet().save();
-			}
-		});
-	
 		// Property hinting
 		jQuery('.dec .property .name').live('keyup show_hints', function(e){
 			// Don't do anything if arrow down/up or tab
