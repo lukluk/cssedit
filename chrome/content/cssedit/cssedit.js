@@ -1882,11 +1882,14 @@ ss.fn.save = function(){
 			query.params.file = this.path();
 			query.params.localFile = filePicker.file.persistentDescriptor;
 			query.execute();
+			
+			jQuery('#message').text('File saved').slideDown().delay(2000).slideUp();
 		}
 	}
 	else{
 		// Yes, write to disk
 		FileIO.write(FileIO.open(query.row.localFile), this.render());
+		jQuery('#message').text('File saved').slideDown().delay(2000).slideUp();
 	}
 }
 
@@ -1920,6 +1923,8 @@ ss.fn.save_as = function(){
 		query.params.file = this.path();
 		query.params.localFile = filePicker.file.persistentDescriptor;
 		query.execute();
+		
+		jQuery('#message').text('File saved').slideDown().delay(2000).slideUp();
 	}
 }
 
