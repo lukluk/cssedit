@@ -785,8 +785,11 @@ CSSEditPanel.prototype = extend(Firebug.Panel,
 			
 			var color_box = jQuery(c.panelNode).find('#color_wrap');
 			if (color){
-				color_box.show();
-				color_box.css({left: left + 20, top: top - 70});
+				color_box.show().position({
+					my: 'left bottom',
+					of: e,
+					offset: '10 -10'
+				});
 				jQuery(c.panelNode).find('#color').css('background-color', color[0]);
 			}
 		})
