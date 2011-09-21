@@ -7,6 +7,8 @@ var loader = Components.classes["@mozilla.org/moz/jssubscript-loader;1"]
 	.getService(Components.interfaces.mozIJSSubScriptLoader);
 
 loader.loadSubScript("chrome://cssedit/content/js/io.js");
+Components.utils.import("resource://gre/modules/Services.jsm");
+Components.utils.import("resource://gre/modules/FileUtils.jsm");
 
 Firebug.CSSEditModel = extend(Firebug.Module, {
     initialize: function(prefDomain, prefNames) {
@@ -41,10 +43,29 @@ Firebug.CSSEditModel = extend(Firebug.Module, {
 					else{
 						var query = db.createStatement("INSERT INTO `websites` (`url`, `file`, `scroll`) VALUES (:url, :file, :scroll)");
 					}
+
 					query.params.url = url;
 					query.params.file = c.stylesheet().url;
 					query.params.scroll = c.panelNode.scrollTop;
 					query.execute();
+					
+					var dh = FileUtils.getFile("ProfD", ['cssedit']);
+					if(!dh.exists()) DirIO.create(dh);
+					for(var i in c.context.stylesheet){
+						var stylesheet = c.context.stylesheet[i],
+							file = stylesheet.path().replace(/[:/]/g, ''),
+							data = stylesheet.render();
+						
+						var fh = FileUtils.getFile("ProfD", ['cssedit', file]);
+						if(data !== stylesheet.css){
+							FileIO.create(fh);
+							FileIO.write(fh, data);
+						}
+						else{
+							FileIO.unlink(fh);
+						}
+					}
+
 				}, true);
 				
 
@@ -951,6 +972,45 @@ CSSEditPanel.prototype = extend(Firebug.Panel,
 		var select_index = select.find('option:contains("'+url+'")').index();
 		select.val(select_index);
 		
+		var dh = FileUtils.getFile("ProfD", ['cssedit']);
+		if(!dh.exists()) DirIO.create(dh);
+
+		var stylesheet = c.context.stylesheet[url],
+			file = stylesheet.path().replace(/[:/]/g, ''),
+			data = stylesheet.render();
+		
+		var fh = FileUtils.getFile("ProfD", ['cssedit', file]);
+		if(fh.exists()){
+			var file_contents = FileIO.read(fh);
+			if(file_contents !== c.context.stylesheet[url].css){
+				jQuery('<div />')
+				.text('You have unsaved changes from a previous session. Would you like to load them?')
+				.dialog({
+					modal: true,
+					position: ['center', 50],
+					title: 'Load backup?',
+					buttons: {
+						'Yes': function(){
+							jQuery(this).dialog('destroy');
+							var old = c.context.stylesheet[url].css;
+							c.context.stylesheet[url].css = file_contents;
+							stylesheet.parse();
+							stylesheet.update_lines();
+							stylesheet.update_element();
+							
+							stylesheet.css = old;
+							FileIO.unlink(fh);
+							
+							c.display(url, scroll);
+						},
+						'No': function(){
+							jQuery(this).dialog('destroy');
+							FileIO.unlink(fh);
+						}
+					}
+				})
+			}
+		}
 	
 		// Generate css display if there were no errors
 		jQuery('#stylesheet', c.panelNode).html( jQuery.tmpl('css', {decs: c.context.stylesheet[url].styles}) ).sortable('refresh');
@@ -1034,8 +1094,6 @@ CSSEditPanel.prototype = extend(Firebug.Panel,
 	
 	getDB : function() {
 		if (!this.db){
-			Components.utils.import("resource://gre/modules/Services.jsm");
-			Components.utils.import("resource://gre/modules/FileUtils.jsm");
 			let file = FileUtils.getFile("ProfD", ["cssedit.sqlite"]);
 			this.db = Services.storage.openDatabase(file); // Will also create the file if it does not exist
 		}
