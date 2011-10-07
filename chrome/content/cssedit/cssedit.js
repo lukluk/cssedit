@@ -565,7 +565,7 @@ CSSEditPanel.prototype = extend(Firebug.Panel,
 			});
 			c.stylesheet().update_template();
 	
-			c.jQuery.tmplItem(c.jQuery('#stylesheet > div')).update();
+			jQuery.tmplItem(jQuery('#stylesheet > div')).update();
 			jQuery('.selector:empty').first().focus();
 		});
 	
