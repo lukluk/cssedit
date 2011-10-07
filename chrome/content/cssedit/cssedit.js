@@ -1059,7 +1059,11 @@ CSSEditPanel.prototype = extend(Firebug.Panel,
 	
 		// If the path is from root
 		if (url[0] == '/'){
-			return window.content.location.protocol + '//' + window.content.location.hostname + url;
+			return window.content.location.protocol +
+			'//' +
+			window.content.location.hostname +
+			(window.content.location.port ? ':'+window.content.location.port : '') +
+			url;
 		}
 	
 		var  path      = base.path.split('/')
